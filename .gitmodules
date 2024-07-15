@@ -1,0 +1,6 @@
+[submodule "latex"]
+	path = latex
+	url = https://git@git.overleaf.com/6685041afe780a99dfb965aa
+[submodule "corev_verif"]
+	path = corev_verif
+	url = https://github.com/openhwgroup/core-v-verif.git

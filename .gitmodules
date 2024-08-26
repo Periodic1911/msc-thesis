@@ -4,3 +4,6 @@
 [submodule "corev_verif"]
 	path = corev_verif
 	url = https://github.com/openhwgroup/core-v-verif.git
+[submodule "VexRiscv"]
+	path = VexRiscv
+	url = git@github.com:Periodic1911/VexRiscv.git

@@ -32,7 +32,7 @@ module top (
       end
     end
 
-    mem prog_mem (.clk(clk) , .rst(rst), .A(addr[14:2]), .RD(data));
+    prog_mem rom (.clk(clk) , .rst(rst), .A(addr[14:2]), .RD(data));
 
     logic [7:0] uart_txbyte;
     logic uart_send;

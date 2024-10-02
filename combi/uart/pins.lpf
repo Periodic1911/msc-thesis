@@ -1,0 +1,16 @@
+LOCATE COMP "clk" SITE "P6";
+IOBUF PORT "clk" IO_TYPE=LVCMOS33;
+FREQUENCY PORT "clk" 25 MHZ;
+
+LOCATE COMP "led[0]" SITE "A11";
+LOCATE COMP "led[1]" SITE "B11";
+LOCATE COMP "led[2]" SITE "A12";
+IOBUF PORT "led" IO_TYPE=LVCMOS25;
+
+LOCATE      COMP "TX"       SITE "B9";   // iCELink-UART3-RX
+//LOCATE      COMP "TX"       SITE "B4"; // ext-board P2-7
+IOBUF       PORT "TX"       IO_TYPE=LVCMOS33;
+
+LOCATE      COMP "RX"       SITE "A9";
+IOBUF       PORT "RX"       IO_TYPE=LVCMOS33;
+

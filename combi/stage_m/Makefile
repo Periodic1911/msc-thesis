@@ -1,10 +1,18 @@
 TOP = top
-DEPS = ../uart/uart_tx.sv mem.sv
+DEPS = ../uart/uart_tx.sv mem.sv stage_m.sv
 OCD_CONFIG = /usr/share/icesugar-pro/tools/cmsisdap.cfg
 PINS = pins.lpf
 NPR_FLAGS = --25k --package CABGA256 --speed 6 --lpf $(PINS) --freq 65
 
 all: $(TOP).bit
+
+dump.vcd: stage_m_tb.sv $(DEPS)
+	 verilator -j 8 --timescale 1ns --trace --binary stage_m_tb.sv -I mem.sv
+	 ./obj_dir/Vstage_m_tb
+
+sim: dump.vcd
+	gtkwave $<
+
 
 $(TOP).bit: $(TOP)_out.cfg
 	ecppack --compress --svf $(TOP).svf $< $@

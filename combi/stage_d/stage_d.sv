@@ -10,7 +10,8 @@ module stage_d(
   output logic [31:0] Rd1D, Rd2D,
   output logic [31:0] immextD,
   output logic [4:0] RdD,
-  output logic [31:0] PCD, Rs1D, Rs2D, PCPlus4D, // RISC-V only
+  output logic [31:0] PCD, PCPlus4D, // RISC-V only
+  output logic [4:0] Rs1D, Rs2D, // RISC-V only
 
   /* control outputs */
   output logic RegWriteD, MemWriteD, BranchD, ALUSrcD,
@@ -30,17 +31,23 @@ logic [1:0] RegSrcD; // ARM only
 
 combi_decoder dec(.*);
 
+assign RdD = (arm) ? {1'b0, instr[15:12]} : instr[11:7];
+
 logic [4:0] ra1, ra2;
 always_comb
   if(arm) begin
     // Mux ARM RegSrc
     ra1 = RegSrcD[0] ? 5'd15 : {1'b0, instr[19:16]};
-    ra2 = {1'b0, RegSrcD[1] ? instr[15:12] : instr[3:0]};
+    ra2 = {1'b0, RegSrcD[1] ? RdD : instr[3:0]};
   end else begin
     // RISC-V assignment
     ra1 = instr[19:15];
     ra2 = instr[24:20];
   end
+
+assign {Rs1D, Rs2D} = {ra1, ra2};
+
+assign CondE = instr[31:28]; // ARM only
 
 regfile rf(.*, .wa3(RdW), .we3(RegWriteW), .wd3(ResultW),
   .r15(PCPlus8D), // ARM only
@@ -55,7 +62,7 @@ assign PCPlus4D = PCPlus4D_r;
 logic [31:0] instr = flushD ? 32'b0 : RDD;
 
 always_ff @(posedge clk) begin : FD_stage
-  if(flushD)
+  if(flushD || rst)
     {PCD_r, PCPlus4D_r} = 64'b0;
   else if(!stallD)
     {PCD_r, PCPlus4D_r} = {PCF, PCPlus4F};

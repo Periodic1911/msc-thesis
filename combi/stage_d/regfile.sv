@@ -17,8 +17,8 @@ assign rd2 = register_read(ra2);
 /* if in RISC-V mode, return 0 when the address is 0 */
 /* if in ARM mode, return r15 when the address is 15 */
 function logic [31:0] register_read(logic [4:0] a);
-  if(arm) return (a[3:0] == 4'b1111) ? r15 : rf[a];
-  else return (a == 0) ? 0 : rf[a];
+  if(arm) register_read = (a[3:0] == 4'b1111) ? r15 : rf[a];
+  else register_read = (a == 0) ? 0 : rf[a];
 endfunction
 
 endmodule

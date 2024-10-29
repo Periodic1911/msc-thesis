@@ -18,7 +18,7 @@ always_comb
     3'b010: ALUResultE = Op1E & Op2E; // and
     3'b011: ALUResultE = Op1E | Op2E; // or
     // RISC-V only
-    3'b101: ALUResultE = (Op1E < Op2E) ? 32'b1 : 32'b0; // slt
+    3'b101: ALUResultE = (Op1E < Op2E) ? 32'b1 : 32'b0; // slt TODO: reuse add_sub carry chain?
     default: ALUResultE = 32'hxxxxxxxx; /// ???
   endcase
 

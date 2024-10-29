@@ -1,5 +1,5 @@
 TOP = alu
-DEPS = alu.sv ../common/common.sv condlogic.sv
+DEPS = alu.sv ../common/common.sv condlogic.sv rvbranch.sv
 OCD_CONFIG = /usr/share/icesugar-pro/tools/cmsisdap.cfg
 PINS = pins.lpf
 NPR_FLAGS = --25k --package CABGA256 --speed 6 --lpf $(PINS) --freq 65

@@ -1,25 +1,25 @@
-module condlogic(input logic [3:0] Cond,
+module condlogic(input logic [3:0] CondE,
                  input logic [3:0] ALUFlags,
                  input logic [1:0] FlagWriteE,
                  input logic PCSrcE, RegWriteE, MemWriteE, BranchE,
                  input logic [3:0] FlagsE,
-                 output logic [3:0] Flags,
-                 output logic PCSrc, RegWrite, MemWrite, BranchTaken);
+                 output logic [3:0] FlagsD,
+                 output logic PCSrc, RegWrite, MemWrite, BranchTakenE);
 
 logic [1:0] FlagWrite;
 logic CondEx;
 
-mux2 #(2)flagmux1(FlagsE[3:2], ALUFlags[3:2], FlagWrite[1], Flags[3:2]);
-mux2 #(2)flagmux0(FlagsE[1:0], ALUFlags[1:0], FlagWrite[0], Flags[1:0]);
+mux2 #(2)flagmux1(FlagsE[3:2], ALUFlags[3:2], FlagWrite[1], FlagsD[3:2]);
+mux2 #(2)flagmux0(FlagsE[1:0], ALUFlags[1:0], FlagWrite[0], FlagsD[1:0]);
 
 // write controls are conditional
-condcheck cc(Cond, FlagsE, CondEx);
+condcheck cc(CondE, FlagsE, CondEx);
 
 assign FlagWrite = FlagWriteE & {2{CondEx}};
 assign RegWrite = RegWriteE & CondEx;
 assign MemWrite = MemWriteE & CondEx;
 assign PCSrc = PCSrcE & CondEx;
-assign BranchTaken = BranchE & CondEx;
+assign BranchTakenE = BranchE & CondEx;
 
 endmodule
 

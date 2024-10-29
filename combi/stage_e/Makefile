@@ -24,6 +24,9 @@ sim: dump.vcd
 
 svg: $(TOP).svg
 
+%.bit: %_out.cfg
+	ecppack --compress --svf $(@:.bit=.svf) $< $@
+
 %_out.cfg: %.json
 	nextpnr-ecp5 $(NPR_FLAGS) --json $< --textcfg $@
 

@@ -19,7 +19,7 @@ module stage_d(
   output logic PCSrcD, // ARM only
   output logic [1:0] FlagWriteD, // ARM only
   output logic [3:0] CondD, // ARM only
-  output logic [1:0] ResultSrcD, // RISC-V only
+  output logic [1:0] ResultSrcD, // bit 1 RISC-V only
   output logic JumpD, // RISC-V only
 
   input logic stallD, flushD

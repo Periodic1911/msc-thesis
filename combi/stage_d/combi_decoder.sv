@@ -9,13 +9,12 @@ module combi_decoder(input logic [31:0] instr,
 
                      /* ARM only */
                      output logic PCSrcD,
-                     output logic MemtoRegD,
                      output logic [1:0] FlagWriteD,
                      output logic [1:0] RegSrcD,
 
-                     /* RISC-V only */
-                     output logic [1:0] ResultSrcD,
-                     output logic JumpD);
+                     output logic [1:0] ResultSrcD, // bit 1 RISC-V only
+                     output logic JumpD // RISC-V only
+                     );
 
 /* RISC-V */
 logic opb5, funct7b5;
@@ -55,7 +54,7 @@ arm_decoder arm_dec(.*, .Op(ARM_Op), .RegW(ARM_RegWrite), .MemW(ARM_MemWrite), .
 always_comb
   if(arm) begin
     /* Don't care about RISC-V outputs */
-    ResultSrcD = 2'bx;
+    ResultSrcD[1] = 1'bx;
     JumpD = 1'bx;
 
     /* Shared */
@@ -65,17 +64,16 @@ always_comb
     BranchD = ARM_Branch;
     ALUSrcD = ARM_ALUSrc;
     ImmSrcD = ARM_ImmSrc;
+    ResultSrcD[0] = MemtoReg;
 
     /* ARM Only */
     PCSrcD = PCSrc;
-    MemtoRegD = MemtoReg;
     FlagWriteD = FlagW;
     RegSrcD = RegSrc;
 
   end else begin /* RISC-V */
     /* Don't care about ARM outputs */
     PCSrcD = 1'bx;
-    MemtoRegD = 1'bx;
     FlagWriteD = 2'bx;
     RegSrcD = 2'bx;
 

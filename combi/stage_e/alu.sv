@@ -7,14 +7,18 @@ module alu(
   output logic ZeroE // RISC-V only
 );
 
+logic [31:0] addResult;
+
+add_sub as(.a(Op1E), .b(Op2E), .q(addResult), .add(ALUControlE[0]), .cOut(carry));
+
 always_comb
   case(ALUControlE)
-    3'b000: ALUResultE = Op1E + Op2E; // add
-    3'b001: ALUResultE = Op1E - Op2E; // sub
+    3'b000: ALUResultE = addResult; // add
+    3'b001: ALUResultE = addResult; // sub
     3'b010: ALUResultE = Op1E & Op2E; // and
     3'b011: ALUResultE = Op1E | Op2E; // or
     // RISC-V only
-    3'b101: ALUResultE = (Op1E < Op2E) ? 32'b1 : 32'b0; // or
+    3'b101: ALUResultE = (Op1E < Op2E) ? 32'b1 : 32'b0; // slt
     default: ALUResultE = 32'hxxxxxxxx; /// ???
   endcase
 
@@ -26,6 +30,8 @@ assign Flags = {neg, zero, carry, overflow};
 always_comb begin : ARM_Flags // ARM only
   zero = (ALUResultE == 0);
   neg = ALUResultE[31];
+  overflow = (~ALUResultE[31] & Op1E[31] & Op2E[31]) |
+             ( ALUResultE[31] &~Op1E[31] &~Op2E[31]);
 end
 
 endmodule

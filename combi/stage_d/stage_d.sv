@@ -16,9 +16,9 @@ module stage_d(
   /* control outputs */
   output logic RegWriteD, MemWriteD, BranchD, ALUSrcD,
   output logic [2:0] ALUControlD,
-  output logic PCSrcD, MemtoRegD, // ARM only
+  output logic PCSrcD, // ARM only
   output logic [1:0] FlagWriteD, // ARM only
-  output logic [3:0] CondE, // ARM only
+  output logic [3:0] CondD, // ARM only
   output logic [1:0] ResultSrcD, // RISC-V only
   output logic JumpD, // RISC-V only
 
@@ -47,7 +47,7 @@ always_comb
 
 assign {Rs1D, Rs2D} = {ra1, ra2};
 
-assign CondE = instr[31:28]; // ARM only
+assign CondD = instr[31:28]; // ARM only
 
 regfile rf(.*, .wa3(RdW), .we3(RegWriteW), .wd3(ResultW),
   .r15(PCPlus8D), // ARM only

@@ -7,7 +7,7 @@ module uart_tx_8n1
     txbyte,     // outgoing byte
     senddata,   // trigger tx
     txdone,     // outgoing byte sent
-    tx,         // tx wire
+    tx          // tx wire
     );
 
     /* Inputs */

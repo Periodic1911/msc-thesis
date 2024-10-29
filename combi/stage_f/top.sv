@@ -2,7 +2,7 @@ module top (
     // input hardware clock (25 MHz)
     input clk, 
     // UART lines
-    output TX, 
+    output TX
     );
 
     logic rst;
@@ -63,7 +63,7 @@ module top (
         // input: tx is finished
         .txdone (uart_txed),
         // output UART tx pin
-        .tx (TX),
+        .tx (TX)
     );
 
 endmodule

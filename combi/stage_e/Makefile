@@ -1,4 +1,4 @@
-TOP = add_sub
+TOP = alu
 DEPS = alu.sv
 OCD_CONFIG = /usr/share/icesugar-pro/tools/cmsisdap.cfg
 PINS = pins.lpf
@@ -24,8 +24,8 @@ svg: $(TOP).svg
 %_out.cfg: %.json
 	nextpnr-ecp5 $(NPR_FLAGS) --json $< --textcfg $@
 
-$(TOP).json: $(TOP).sv $(DEPS)
-	synlig -p "synth_ecp5 -json $@" -r $(TOP) $^
+%.json: $(DEPS)
+	synlig -p "synth_ecp5 -json $@" -r $(@:.json=) $^
 
 program_ram: $(TOP).svf
 	sudo openocd -f $(OCD_CONFIG) -c "init; scan_chain; svf -tap ecp5.tap $< -quiet -progress; exit;"

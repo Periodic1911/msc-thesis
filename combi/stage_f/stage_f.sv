@@ -1,4 +1,4 @@
-module stage_m (
+module stage_f (
   input clk,
   input rst,
   input arm,

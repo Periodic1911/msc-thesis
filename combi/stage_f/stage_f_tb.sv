@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-module stage_m_tb ();
+module stage_f_tb ();
 logic clk;
 logic rst;
 logic arm;
@@ -15,7 +15,7 @@ logic [31:0] PCF;
 logic [31:0] PCPlus4F;
 logic StallF;
 
-stage_m test(.*);
+stage_f test(.*);
 
 always
   #20 clk = ~clk; // clock period 25MHz (40ns)

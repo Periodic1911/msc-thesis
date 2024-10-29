@@ -1,5 +1,5 @@
-TOP = top
-DEPS = ../common/common.sv mem.sv stage_m.sv top.sv stage_m_tb.sv ../uart/uart_tx.sv
+TOP = stage_f
+DEPS = ../common/common.sv mem.sv stage_f.sv top.sv stage_f_tb.sv ../uart/uart_tx.sv
 OCD_CONFIG = /usr/share/icesugar-pro/tools/cmsisdap.cfg
 PINS = pins.lpf
 NPR_FLAGS = --25k --package CABGA256 --speed 6 --lpf $(PINS) --freq 65

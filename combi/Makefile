@@ -12,20 +12,32 @@ NPR_FLAGS = --25k --package CABGA256 --speed 6 --lpf $(PINS) --freq 65
 
 all: $(TOP).bit
 
-$(TOP).bit: $(TOP)_out.cfg
-	ecppack --compress --svf $(TOP).svf $< $@
+dump.vcd: $(TOP)_tb.sv $(DEPS)
+	 verilator -j 8 --timescale 1ns --trace --binary --top-module $(TOP)_tb -I $^
+	 ./obj_dir/V$(TOP)_tb
 
-$(TOP)_flash.svf: $(TOP).bit
-	/usr/share/icesugar-pro/tools/ujprog.bit2svf -j FLASH $< > $@
+sim: dump.vcd
+	gtkwave $<
 
 %.svf: %.bit
 	
 
+%.svg: %.json
+	netlistsvg -o $@ $<
+
+%.stat: %.json
+	synlig -p "stat" $^
+
+svg: $(TOP).svg
+
+%.bit: %_out.cfg
+	ecppack --compress --svf $(@:.bit=.svf) $< $@
+
 %_out.cfg: %.json
 	nextpnr-ecp5 $(NPR_FLAGS) --json $< --textcfg $@
 
-$(TOP).json: $(TOP).sv $(DEPS)
-	synlig -p "synth_ecp5 -json $@" -r $(TOP) $^
+%.json: $(DEPS)
+	synlig -q -p "synth_ecp5 -json $@" -r $(@:.json=) $^
 
 program_ram: $(TOP).svf
 	sudo openocd -f $(OCD_CONFIG) -c "init; scan_chain; svf -tap ecp5.tap $< -quiet -progress; exit;"

@@ -1,6 +1,6 @@
 module combi (
   input logic clk, rst, arm,
-  output logic [31:0] ALUResultE
+  output logic [31:0] WriteData, DataAddr
 );
 
 /* fetch */
@@ -37,6 +37,7 @@ logic RegWriteE, MemWriteE;
 logic BranchTakenE; // ARM only
 logic RVPCSrcE; // RISC-V only
 logic [31:0] PCTargetE; // RISC-V only
+logic [31:0] ALUResultE;
 
 logic [4:0] Rs1E, Rs2E;
 

@@ -16,6 +16,9 @@ module stage_m (
   output logic PCSrcM, // ARM only
   output logic RegWriteM,
   output logic [1:0] ResultSrcM, // bit 1 RV only
+
+  /* debug port */
+  output logic [31:0] WriteData, DataAddr,
   );
 
 logic [31:0] WriteDataM;
@@ -41,5 +44,8 @@ flopr #(106) em_stage(clk, rst,
    );
 
 ram datamem(clk, rst, MemWriteM, ALUResultM, WriteDataM, ReadDataW);
+
+assign WriteData = WriteDataM;
+assign DataAddr = ALUResultM;
 
 endmodule

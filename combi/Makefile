@@ -1,5 +1,11 @@
-TOP = top
-DEPS = uart/uart_tx.sv mem.sv
+TOP = combi
+DEPS = common/common.sv combi.sv hazard/hazard.sv \
+			 stage_d/combi_decoder.sv  stage_e/condlogic.sv   stage_f/top.sv \
+       stage_d/extend.sv         stage_e/rvbranch.sv    stage_m/ram.sv \
+       stage_d/regfile.sv        stage_e/stage_e.sv     stage_m/stage_m.sv \
+       stage_d/stage_d.sv        stage_f/mem.sv         stage_w/stage_w.sv \
+       stage_e/add_sub_tb.sv     stage_f/stage_f.sv \
+       stage_e/alu.sv            stage_f/stage_f_tb.sv
 OCD_CONFIG = /usr/share/icesugar-pro/tools/cmsisdap.cfg
 PINS = pins.lpf
 NPR_FLAGS = --25k --package CABGA256 --speed 6 --lpf $(PINS) --freq 65

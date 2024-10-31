@@ -22,7 +22,7 @@ module stage_d(
   output logic [1:0] ResultSrcD, // bit 1 RISC-V only
   output logic JumpD, // RISC-V only
 
-  input logic stallD, flushD
+  input logic StallD, FlushD
   );
 
 logic [31:0] PCPlus8D = PCPlus4F;
@@ -62,9 +62,9 @@ assign PCPlus4D = PCPlus4D_r;
 logic [31:0] instr = flushD ? 32'b0 : RDD;
 
 always_ff @(posedge clk) begin : FD_stage
-  if(flushD || rst)
+  if(FlushD || rst)
     {PCD_r, PCPlus4D_r} = 64'b0;
-  else if(!stallD)
+  else if(!StallD)
     {PCD_r, PCPlus4D_r} = {PCF, PCPlus4F};
   else
     {PCD_r, PCPlus4D_r} = {PCD_r, PCPlus4D_r};

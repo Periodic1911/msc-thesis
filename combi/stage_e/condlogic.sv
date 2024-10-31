@@ -1,10 +1,10 @@
 module condlogic(input logic [3:0] CondE,
                  input logic [3:0] ALUFlags,
                  input logic [1:0] FlagWriteE,
-                 input logic PCSrcE, RegWriteE, MemWriteE, BranchE,
+                 input logic PCSrc, RegWrite, MemWrite, BranchE,
                  input logic [3:0] FlagsE,
                  output logic [3:0] FlagsD,
-                 output logic PCSrc, RegWrite, MemWrite, BranchTakenE);
+                 output logic PCSrcE, RegWriteE, MemWriteE, BranchTakenE);
 
 logic [1:0] FlagWrite;
 logic CondEx;
@@ -16,9 +16,9 @@ mux2 #(2)flagmux0(FlagsE[1:0], ALUFlags[1:0], FlagWrite[0], FlagsD[1:0]);
 condcheck cc(CondE, FlagsE, CondEx);
 
 assign FlagWrite = FlagWriteE & {2{CondEx}};
-assign RegWrite = RegWriteE & CondEx;
-assign MemWrite = MemWriteE & CondEx;
-assign PCSrc = PCSrcE & CondEx;
+assign RegWriteE = RegWrite & CondEx;
+assign MemWriteE = MemWrite & CondEx;
+assign PCSrcE = PCSrc & CondEx;
 assign BranchTakenE = BranchE & CondEx;
 
 endmodule

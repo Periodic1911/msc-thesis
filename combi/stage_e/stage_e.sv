@@ -21,8 +21,8 @@ module stage_e(
   input logic JumpD, // RISC-V only
 
   output logic [1:0] ResultSrcE, // bit 1 is RISC-V only
-  output logic PCSrc, // ARM only
-  output logic RegWrite, MemWrite,
+  output logic PCSrcE, // ARM only
+  output logic RegWriteE, MemWriteE,
 
   output logic BranchTakenE, // ARM only
   output logic RVPCSrcE, // RISC-V only
@@ -40,9 +40,9 @@ logic [31:0] Rd1E, Rd2E;
 logic [31:0] immextE;
 logic [31:0] PCE; // RISC-V only
 logic [4:0] Rs1E, Rs2E; // RISC-V only
-logic RegWriteE, MemWriteE, BranchE, ALUSrcE;
+logic RegWrite, MemWrite, BranchE, ALUSrcE;
 logic [2:0] ALUControlE;
-logic PCSrcE; // ARM only
+logic PCSrc; // ARM only
 logic [1:0] FlagWriteE; // ARM only
 logic [3:0] CondE; // ARM only
 logic [1:0] ResultSrcE; // RISC-V only
@@ -69,9 +69,9 @@ flopr #(196) de_stage(clk, (rst | FlushE),
   PCE, PCPlus4E, // RISC-V only
   Rs1E, Rs2E, // RISC-V only
   /* control inputs */
-  RegWriteE, MemWriteE, BranchE, ALUSrcE,
+  RegWrite, MemWrite, BranchE, ALUSrcE,
   ALUControlE,
-  PCSrcE, // ARM only
+  PCSrc, // ARM only
   FlagWriteE, // ARM only
   CondE, // ARM only
   FlagsE, // ARM only
@@ -83,8 +83,7 @@ flopr #(196) de_stage(clk, (rst | FlushE),
 logic [3:0] FlagsE, FlagsD; // ARM only
 
 // ARM only
-condlogic condl(.*,
-  );
+condlogic condl(.*);
 
 rvbranch branch_rv(.*); // RV only
 

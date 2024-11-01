@@ -35,7 +35,7 @@ always_ff @(posedge clk) begin: PC_REG
 end
 
 /* Program memory */
-prog_mem rom(.*, .A(_PCF[12:0]), .RD(RDD));
+prog_mem rom(.*, .A(_PCF[14:2]), .RD(RDD));
 
 assign PCPlus4F = _PCF + 4;
 assign PCF = _PCF;

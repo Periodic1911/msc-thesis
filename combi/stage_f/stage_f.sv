@@ -29,9 +29,8 @@ assign PCF1 = (!arm & RVPCSrcE) ? PCTargetE : PCF2;
 logic [31:0] _PCF;
 /* PC register */
 always_ff @(posedge clk) begin: PC_REG
-  if (!StallF) begin
-    _PCF <= PCF1;
-  end
+  if(rst) _PCF <= 32'b0;
+  else if (!StallF) _PCF <= PCF1;
 end
 
 /* Program memory */

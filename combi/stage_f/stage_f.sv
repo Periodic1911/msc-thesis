@@ -16,7 +16,7 @@ module stage_f (
   output [31:0] PCF,
   output [31:0] PCPlus4F,
 
-  input StallF
+  input StallF, FlushD
  );
 
 logic [31:0] PCF3, PCF2, PCF1;

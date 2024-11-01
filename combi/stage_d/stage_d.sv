@@ -59,7 +59,7 @@ logic [31:0] PCD_r, PCPlus4D_r;
 assign PCD = PCD_r;
 assign PCPlus4D = PCPlus4D_r;
 
-logic [31:0] instr = flushD ? 32'b0 : RDD;
+logic [31:0] instr = RDD;
 
 always_ff @(posedge clk) begin : FD_stage
   if(FlushD || rst)

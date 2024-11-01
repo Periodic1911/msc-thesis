@@ -9,7 +9,7 @@ module alu(
 
 logic [31:0] addResult;
 
-add_sub as(.a(Op1E), .b(Op2E), .q(addResult), .add(ALUControlE[0]), .cOut(carry));
+add_sub as(.a(Op1E), .b(Op2E), .q(addResult), .add(~ALUControlE[0]), .cOut(carry));
 
 always_comb
   case(ALUControlE)
@@ -44,7 +44,8 @@ module add_sub(
   output logic cOut
 );
 
-logic [31:0] b_inv = add ? b : ~b;
+logic [31:0] b_inv;
+assign b_inv = add ? b : ~b;
 logic carry_in = ~add;
 logic carry_out;
 

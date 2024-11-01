@@ -19,6 +19,7 @@ module stage_m (
 
   /* debug port */
   output logic [31:0] WriteData, DataAddr,
+  output logic MemWrite
   );
 
 logic [31:0] WriteDataM;
@@ -43,9 +44,10 @@ flopr #(106) em_stage(clk, rst,
    }
    );
 
-ram datamem(clk, rst, MemWriteM, ALUResultM, WriteDataM, ReadDataW);
+ram #(13)datamem(clk, rst, MemWriteM, ALUResultM[12:0], WriteDataM, ReadDataW);
 
 assign WriteData = WriteDataM;
 assign DataAddr = ALUResultM;
+assign MemWrite = MemWriteM;
 
 endmodule

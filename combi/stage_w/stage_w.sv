@@ -16,7 +16,6 @@ module stage_w (
   );
 
 logic [1:0] ResultSrcW;
-logic [4:0] RdW;
 logic [31:0] PCPlus4W; // RV only
 logic [31:0] ALUResultW;
 

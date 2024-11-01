@@ -38,7 +38,7 @@ always_comb
   if(arm) begin
     // Mux ARM RegSrc
     ra1 = RegSrcD[0] ? 5'd15 : {1'b0, instr[19:16]};
-    ra2 = {1'b0, RegSrcD[1] ? RdD : instr[3:0]};
+    ra2 = {1'b0, RegSrcD[1] ? RdD[3:0] : instr[3:0]};
   end else begin
     // RISC-V assignment
     ra1 = instr[19:15];

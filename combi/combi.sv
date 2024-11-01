@@ -1,6 +1,7 @@
 module combi (
   input logic clk, rst, arm,
-  output logic [31:0] WriteData, DataAddr
+  output logic [31:0] WriteData, DataAddr,
+  output logic MemWrite
 );
 
 /* fetch */

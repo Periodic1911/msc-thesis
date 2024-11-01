@@ -11,6 +11,6 @@ module prog_mem #(parameter SIZE_LOG2=13) (input clk, input [SIZE_LOG2-1:0] A, o
 
   /* initialize memory */
   initial begin
-    $readmemh("program.hex", mem_ff);
+    $readmemh("stage_f/program.hex", mem_ff);
   end
 endmodule

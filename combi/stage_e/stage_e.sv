@@ -39,13 +39,11 @@ module stage_e(
 logic [31:0] Rd1E, Rd2E;
 logic [31:0] immextE;
 logic [31:0] PCE; // RISC-V only
-logic [4:0] Rs1E, Rs2E; // RISC-V only
 logic RegWrite, MemWrite, BranchE, ALUSrcE;
 logic [2:0] ALUControlE;
 logic PCSrc; // ARM only
 logic [1:0] FlagWriteE; // ARM only
 logic [3:0] CondE; // ARM only
-logic [1:0] ResultSrcE; // RISC-V only
 logic JumpE; // RISC-V only
 
 

@@ -1,5 +1,5 @@
 TOP = combi
-DEPS = common/common.sv combi.sv hazard/hazard.sv \
+DEPS = common/common.sv combi.sv combi_tb.sv hazard/hazard.sv \
 			 stage_d/combi_decoder.sv  stage_e/condlogic.sv   stage_f/top.sv \
        stage_d/extend.sv         stage_e/rvbranch.sv    stage_m/ram.sv \
        stage_d/regfile.sv        stage_e/stage_e.sv     stage_m/stage_m.sv \

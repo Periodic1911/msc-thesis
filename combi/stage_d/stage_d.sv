@@ -49,7 +49,7 @@ assign {Rs1D, Rs2D} = {ra1, ra2};
 
 assign CondD = instr[31:28]; // ARM only
 
-regfile rf(.*, .wa3(RdW), .we3(RegWriteW), .wd3(ResultW),
+regfile rf(.clk(~clk), .*, .wa3(RdW), .we3(RegWriteW), .wd3(ResultW),
   .r15(PCPlus8D), // ARM only
   .rd1(Rd1D), .rd2(Rd2D));
 

@@ -200,6 +200,6 @@ always_comb
   end
 
 // PC Logic
-assign PCSrc = ((Rd == 4'b1111) & RegW) | Branch;
+assign PCSrc = ((Rd == 4'b1111) & RegW);
 
 endmodule

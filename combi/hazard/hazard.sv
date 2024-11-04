@@ -32,7 +32,8 @@ end
 logic Match_12D_E = (Rs1D == RdE) | (Rs2D == RdE);
 logic LDStall;
 assign LDStall = Match_12D_E & ResultSrcE[0]; // bit 1 is RISC-V only
-logic PCWrPendingF = PCSrcD | PCSrcE | PCSrcM; // ARM only
+logic PCWrPendingF;
+assign PCWrPendingF = PCSrcD | PCSrcE | PCSrcM; // ARM only
 
 assign StallD = LDStall;
 assign StallF = LDStall | (arm & PCWrPendingF);

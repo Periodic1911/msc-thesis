@@ -19,12 +19,12 @@ logic Match_2E_M = (Rs2E == RdM) & (arm | Rs2E != 0);
 logic Match_2E_W = (Rs2E == RdW) & (arm | Rs2E != 0);
 
 always_comb begin
-  if     (Match_1E_W & RegWriteW) ForwardAE = 2'b01; // Op1E = ResultW
-  else if(Match_1E_M & RegWriteM) ForwardAE = 2'b10; // Op1E = ALUOutM
+  if     (Match_1E_M & RegWriteM) ForwardAE = 2'b10; // Op1E = ALUOutM
+  else if(Match_1E_W & RegWriteW) ForwardAE = 2'b01; // Op1E = ResultW
   else                            ForwardAE = 2'b00; // No forwarding
 
-  if     (Match_2E_W & RegWriteW) ForwardBE = 2'b01; // Op2E = ResultW
-  else if(Match_2E_M & RegWriteM) ForwardBE = 2'b10; // Op2E = ALUOutM
+  if     (Match_2E_M & RegWriteM) ForwardBE = 2'b10; // Op2E = ALUOutM
+  else if(Match_2E_W & RegWriteW) ForwardBE = 2'b01; // Op2E = ResultW
   else                            ForwardBE = 2'b00; // No forwarding
 end
 

@@ -61,13 +61,9 @@ assign PCPlus4D = PCPlus4D_r;
 
 logic [31:0] instr = RDD;
 
-always_ff @(posedge clk) begin : FD_stage
-  if(FlushD || rst)
-    {PCD_r, PCPlus4D_r} = 64'b0;
-  else if(!StallD)
-    {PCD_r, PCPlus4D_r} = {PCF, PCPlus4F};
-  else
-    {PCD_r, PCPlus4D_r} = {PCD_r, PCPlus4D_r};
-end
+flopenr #(64) fd_stage(clk, (rst | FlushD), ~StallD,
+  {PCF, PCPlus4F},
+  {PCD_r, PCPlus4D_r}
+);
 
 endmodule

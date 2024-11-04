@@ -1,5 +1,5 @@
 TOP = stage_d
-DEPS = stage_d.sv extend.sv regfile.sv stage_d.sv combi_decoder.sv
+DEPS = stage_d.sv extend.sv regfile.sv stage_d.sv combi_decoder.sv ../common/common.sv
 OCD_CONFIG = /usr/share/icesugar-pro/tools/cmsisdap.cfg
 PINS = pins.lpf
 NPR_FLAGS = --25k --package CABGA256 --speed 6 --lpf $(PINS) --freq 65

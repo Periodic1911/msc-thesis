@@ -12,7 +12,7 @@ combi dut(clk, reset, arm, WriteData, DataAdr, MemWrite);
 // initialize test
 initial begin
   reset = 1; # 22; reset = 0;
-  #10000 $display("Simulation timed out after 10 us");
+  #500 $display("Simulation timed out after 500 ns");
   $exit;
 end
 

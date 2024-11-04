@@ -2,7 +2,7 @@ module combi_tb();
 
 logic clk;
 logic reset;
-logic arm = 0;
+logic arm = 1;
 logic [31:0] WriteData, DataAdr;
 logic MemWrite;
 
@@ -24,7 +24,7 @@ end
 // check results
 always @(negedge clk) begin
   if(MemWrite) begin
-    if(DataAdr === 100 & WriteData === 25) begin
+    if(DataAdr === 100 & WriteData === 7) begin
       $display("Simulation succeeded");
       $exit;
     end else if (DataAdr !== 96) begin

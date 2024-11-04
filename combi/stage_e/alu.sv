@@ -9,7 +9,9 @@ module alu(
 
 logic [31:0] addResult;
 
-add_sub as(.a(Op1E), .b(Op2E), .q(addResult), .add(~ALUControlE[0]), .cOut(carry));
+add_sub as(.a(Op1E), .b(Op2E), .q(addResult), .add(~ALUControlE[0]), .cOut(carry),
+  .overflow(overflow) // ARM only
+  );
 
 always_comb
   case(ALUControlE)
@@ -30,8 +32,6 @@ assign ALUFlags = {neg, zero, carry, overflow}; // ARM only
 always_comb begin : ARM_Flags // ARM only
   zero = (ALUResultE == 0);
   neg = ALUResultE[31];
-  overflow = (~ALUResultE[31] & Op1E[31] & Op2E[31]) |
-             ( ALUResultE[31] &~Op1E[31] &~Op2E[31]);
 end
 
 endmodule
@@ -41,7 +41,8 @@ module add_sub(
   input logic [31:0] a, b,
   input logic add,
   output logic [31:0] q,
-  output logic cOut
+  output logic cOut,
+  output logic overflow // ARM only
 );
 
 logic [31:0] b_inv;
@@ -51,5 +52,7 @@ logic carry_out;
 
 assign {carry_out, q} = a + b_inv + {31'b0, carry_in};
 xor(cOut, carry_out, carry_in);
+assign overflow = (~q[31] & a[31] & b_inv[31]) |
+                  ( q[31] &~a[31] &~b_inv[31]);
 
 endmodule

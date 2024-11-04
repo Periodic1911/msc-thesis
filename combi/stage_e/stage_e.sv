@@ -46,45 +46,13 @@ logic [1:0] FlagWriteE; // ARM only
 logic [3:0] CondE; // ARM only
 logic JumpE; // RISC-V only
 
-
-flopr #(196) de_stage(clk, (rst | FlushE),
-  {
-  Rd1D, Rd2D, immextD, RdD,
-  PCD, PCPlus4D, // RISC-V only
-  Rs1D, Rs2D, // RISC-V only
-  /* control inputs */
-  RegWriteD, MemWriteD, BranchD, ALUSrcD,
-  ALUControlD,
-  PCSrcD, // ARM only
-  FlagWriteD, // ARM only
-  CondD, // ARM only
-  FlagsD, // ARM only
-  ResultSrcD, // bit 1 RISC-V only
-  JumpD // RISC-V only
-  },
-  {
-  Rd1E, Rd2E, immextE, RdE,
-  PCE, PCPlus4E, // RISC-V only
-  Rs1E, Rs2E, // RISC-V only
-  /* control inputs */
-  RegWrite, MemWrite, BranchE, ALUSrcE,
-  ALUControlE,
-  PCSrc, // ARM only
-  FlagWriteE, // ARM only
-  CondE, // ARM only
-  FlagsE, // ARM only
-  ResultSrcE, // bit 1 RISC-V only
-  JumpE // RISC-V only
-  }
-);
-
 logic [3:0] FlagsE, FlagsD; // ARM only
 
 // ARM only
-condlogic condl(.*);
 logic RegWriteE_ARM, MemWriteE_ARM;
 assign RegWriteE = arm ? RegWriteE_ARM : RegWrite;
 assign MemWriteE = arm ? MemWriteE_ARM : MemWrite;
+condlogic condl(.*);
 
 rvbranch branch_rv(.*); // RV only
 
@@ -99,5 +67,36 @@ mux3 #(32)forwardMux2(Rd2E, ResultW, ALUResultM, ForwardBE, WriteDataE);
 mux2 #(32)immMux2(WriteDataE, immextE, ALUSrcE, Op2E);
 
 assign PCTargetE = PCE + immextE;
+
+flopr #(196) de_stage(clk, (rst | FlushE),
+  {
+  Rd1D, Rd2D, RdD, immextD,
+  PCD, PCPlus4D, // RISC-V only
+  Rs1D, Rs2D, // RISC-V only
+  /* control inputs */
+  RegWriteD, MemWriteD, BranchD, ALUSrcD,
+  ALUControlD,
+  PCSrcD, // ARM only
+  FlagWriteD, // ARM only
+  CondD, // ARM only
+  FlagsD, // ARM only
+  ResultSrcD, // bit 1 RISC-V only
+  JumpD // RISC-V only
+  },
+  {
+  Rd1E, Rd2E, RdE, immextE,
+  PCE, PCPlus4E, // RISC-V only
+  Rs1E, Rs2E, // RISC-V only
+  /* control inputs */
+  RegWrite, MemWrite, BranchE, ALUSrcE,
+  ALUControlE,
+  PCSrc, // ARM only
+  FlagWriteE, // ARM only
+  CondE, // ARM only
+  FlagsE, // ARM only
+  ResultSrcE, // bit 1 RISC-V only
+  JumpE // RISC-V only
+  }
+);
 
 endmodule

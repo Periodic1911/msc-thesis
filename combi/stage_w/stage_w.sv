@@ -39,7 +39,7 @@ flopr #(73) em_stage(clk, rst,
   );
 
 // PCPlus4W is RV only
-mux3 #(32)result_mux(ReadDataW, PCPlus4W, ALUResultW,
+mux3 #(32)result_mux(ALUResultW, ReadDataW, PCPlus4W,
                      ResultSrcW, ResultW);
 
 endmodule

@@ -82,6 +82,9 @@ logic [3:0] FlagsE, FlagsD; // ARM only
 
 // ARM only
 condlogic condl(.*);
+logic RegWriteE_ARM, MemWriteE_ARM;
+assign RegWriteE = arm ? RegWriteE_ARM : RegWrite;
+assign MemWriteE = arm ? MemWriteE_ARM : MemWrite;
 
 rvbranch branch_rv(.*); // RV only
 

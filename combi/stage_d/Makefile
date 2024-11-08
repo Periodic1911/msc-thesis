@@ -1,14 +1,14 @@
 TOP = stage_d
-DEPS = stage_d.sv extend.sv regfile.sv stage_d.sv combi_decoder.sv ../common/common.sv
+DEPS = stage_d.sv extend.sv regfile.sv stage_d.sv combi_decoder.sv ../common/common.sv combi_decoder_tb.sv
 OCD_CONFIG = /usr/share/icesugar-pro/tools/cmsisdap.cfg
 PINS = pins.lpf
 NPR_FLAGS = --25k --package CABGA256 --speed 6 --lpf $(PINS) --freq 65
 
 all: $(TOP).bit
 
-dump.vcd: stage_m_tb.sv $(DEPS)
-	 verilator -j 8 --timescale 1ns --trace --binary $(TOP)_tb.sv
-	 ./obj_dir/V$(TOP)_tb
+dump.vcd: combi_decoder_tb.sv $(DEPS)
+	 verilator -j 8 --timescale 1ns --trace --binary combi_decoder_tb.sv
+	 ./obj_dir/Vcombi_decoder_tb
 
 sim: dump.vcd
 	gtkwave $<

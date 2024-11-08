@@ -1,5 +1,6 @@
 module combi_decoder(input logic [31:0] instr,
-                     input logic arm,
+                     input logic armIn,
+                     output logic armD,
                      output logic RegWriteD,
                      output logic MemWriteD,
                      output logic [2:0] ALUControlD,
@@ -25,6 +26,7 @@ logic [6:0] RV_op;
 logic [1:0] ResultSrc;
 logic RV_MemWrite, RV_Branch, RV_ALUSrc, RV_RegWrite, Jump;
 logic [1:0] RV_ImmSrc;
+logic RV_mainValid, RV_ALUValid, RV_valid; //combi only
 
 assign {opb5, funct7b5, funct3, RV_op} = {
   instr[5],
@@ -35,6 +37,8 @@ assign {opb5, funct7b5, funct3, RV_op} = {
 rv_aludec rv_adec(.*, .ALUControl(RV_ALUControl));
 rv_maindec rv_mdec(.*, .op(RV_op), .MemWrite(RV_MemWrite), .Branch(RV_Branch), .RegWrite(RV_RegWrite), .ImmSrc(RV_ImmSrc), .ALUSrc(RV_ALUSrc) );
 
+assign RV_valid = RV_mainValid & RV_ALUValid; // combi only
+
 /* ARM */
 logic [1:0] ARM_Op;
 logic [5:0] Funct;
@@ -42,6 +46,7 @@ logic [3:0] Rd;
 logic [1:0] FlagW;
 logic PCSrc, ARM_RegWrite, ARM_MemWrite, MemtoReg, ARM_ALUSrc, ARM_Branch;
 logic [1:0] ARM_ImmSrc, RegSrc, ARM_ALUControl;
+logic ARM_valid; // combi only
 
 assign {ARM_Op, Funct, Rd} = {
   instr[27:26],
@@ -52,7 +57,7 @@ arm_decoder arm_dec(.*, .Op(ARM_Op), .RegW(ARM_RegWrite), .MemW(ARM_MemWrite), .
 
 /* Combine RISC-V and ARM */
 always_comb
-  if(arm) begin
+  if(armD) begin
     /* Don't care about RISC-V outputs */
     ResultSrcD[1] = 1'bx;
     JumpD = 1'bx;
@@ -90,6 +95,14 @@ always_comb
     JumpD = Jump;
   end
 
+/* decide instruction type */
+always_comb
+  case({RV_valid, ARM_valid})
+    2'b00: armD = 1'bx; // ???
+    2'b01: armD = 1'b1;
+    2'b10: armD = 1'b0;
+    2'b11: armD = armIn;
+  endcase
 
 endmodule
 
@@ -98,12 +111,14 @@ module rv_aludec(input logic opb5,
                  input logic [2:0] funct3,
                  input logic funct7b5,
                  input logic [1:0] ALUOp,
+                 output logic RV_ALUValid, // combi only
                  output logic [2:0] ALUControl);
 
 logic RtypeSub;
 assign RtypeSub = funct7b5 & opb5; // TRUE for R–type subtract
 
-always_comb
+always_comb begin
+  RV_ALUValid = 1; // combi only
   case(ALUOp)
     2'b00: ALUControl = 3'b000; // addition
     2'b01: ALUControl = 3'b001; // subtraction
@@ -115,13 +130,18 @@ always_comb
       3'b010:  ALUControl = 3'b101; // slt, slti
       3'b110:  ALUControl = 3'b011; // or, ori
       3'b111:  ALUControl = 3'b010; // and, andi
-      default: ALUControl = 3'bxxx; // ???
+      default: begin
+        ALUControl = 3'bxxx; // ???
+        RV_ALUValid = 0; // combi only
+      end
     endcase
   endcase
+end
 
 endmodule
 
 module rv_maindec(input logic [6:0] op,
+                  output logic RV_mainValid, // combi only
                   output logic [1:0] ResultSrc,
                   output logic MemWrite,
                   output logic Branch, ALUSrc,
@@ -134,7 +154,8 @@ logic [10:0] controls;
 assign {RegWrite, ImmSrc, ALUSrc, MemWrite,
   ResultSrc, Branch, ALUOp, Jump} = controls;
 
-always_comb
+always_comb begin
+  RV_mainValid = 1; // combi only
   case(op)
     // RegWrite_ImmSrc_ALUSrc_MemWrite_ResultSrc_Branch_ALUOp_Jump
     7'b0000011: controls = 11'b1_00_1_0_01_0_00_0; // lw
@@ -143,14 +164,19 @@ always_comb
     7'b1100011: controls = 11'b0_10_0_0_00_1_01_0; // beq
     7'b0010011: controls = 11'b1_00_1_0_00_0_10_0; // I–type ALU
     7'b1101111: controls = 11'b1_11_0_0_10_0_00_1; // jal
-    default: controls = 11'bx_xx_x_x_xx_x_xx_x; // ???
+    default: begin
+      controls = 11'bx_xx_x_x_xx_x_xx_x; // ???
+      RV_mainValid = 0; // combi only
+    end
   endcase
+end
 
 endmodule
 
 module arm_decoder(input logic [1:0] Op,
                    input logic [5:0] Funct,
                    input logic [3:0] Rd,
+                   output logic ARM_valid, // combi only
                    output logic Branch,
                    output logic [1:0] FlagW,
                    output logic PCSrc, RegW, MemW,
@@ -159,9 +185,13 @@ module arm_decoder(input logic [1:0] Op,
 
 logic [9:0] controls;
 logic ALUOp;
+logic mainValid, aluValid; // combi only
+
+assign ARM_valid = mainValid & aluValid; // combi only
 
 // Main Decoder
-always_comb
+always_comb begin
+  mainValid = 1; // combi only
   case(Op)
     // Data-processing immediate
     2'b00: if (Funct[5]) controls = 10'b0000101001;
@@ -174,21 +204,29 @@ always_comb
     // B
     2'b10: controls = 10'b0110100010;
     // Unimplemented
-    default: controls = 10'bx;
+    default: begin
+      controls = 10'bx;
+      mainValid = 0; // combi only
+    end
   endcase
+end
 
 assign {RegSrc, ImmSrc, ALUSrc, MemtoReg,
   RegW, MemW, Branch, ALUOp} = controls;
 
 // ALU Decoder
-always_comb
+always_comb begin
+  aluValid = 1; // combi only
   if (ALUOp) begin // which DP instr?
     case(Funct[4:1])
       4'b0100: ALUControl = 2'b00; // ADD
       4'b0010: ALUControl = 2'b01; // SUB
       4'b0000: ALUControl = 2'b10; // AND
       4'b1100: ALUControl = 2'b11; // ORR
-      default: ALUControl = 2'bx; // unimplemented
+      default: begin
+        ALUControl = 2'bx; // unimplemented
+        aluValid = 0; // combi only
+      end
     endcase
     // update flags if S bit is set (C & V only for arith)
     FlagW[1] = Funct[0];
@@ -198,6 +236,7 @@ always_comb
     ALUControl = 2'b00; // add for non-DP instructions
     FlagW = 2'b00; // don't update Flags
   end
+end
 
 // PC Logic
 assign PCSrc = ((Rd == 4'b1111) & RegW);

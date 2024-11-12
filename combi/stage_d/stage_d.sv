@@ -48,29 +48,37 @@ logic [1:0] RegSrcD; // ARM only
 
 combi_decoder dec(.*);
 
+`ifdef RISCV `ifdef ARM
 assign RdD = (armD) ? {1'b0, instr[15:12]} : instr[11:7];
+`endif `endif
+`ifdef ARM `ifndef RISCV
+assign RdD = {1'b0, instr[15:12]};
+`endif `endif
+`ifndef ARM `ifdef RISCV
+assign RdD = instr[11:7];
+`endif `endif
 
 logic [4:0] ra1, ra2;
 always_comb
 `ifdef ARM
   `ifdef RISCV
-  if(armD) begin
+  if(armD)
   `endif
+  begin
     // Mux ARM RegSrc
     ra1 = RegSrcD[0] ? 5'd15 : {1'b0, instr[19:16]};
     ra2 = {1'b0, RegSrcD[1] ? RdD[3:0] : instr[3:0]};
 `endif /* ARM */
 `ifdef RISCV
   `ifdef ARM
-  end else begin
+  end else
   `endif
+  begin
     // RISC-V assignment
     ra1 = instr[19:15];
     ra2 = instr[24:20];
-  `ifdef ARM
-  end
-  `endif
 `endif /* RISCV */
+  end
 
 assign {Rs1D, Rs2D} = {ra1, ra2};
 

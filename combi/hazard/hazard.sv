@@ -1,5 +1,7 @@
 module hazard(
+`ifdef RISCV `ifdef ARM
   input logic armD, armE, armM, armW,
+`endif `endif
   input logic RegWriteM, RegWriteW,
   input logic [4:0] RdE, RdM, RdW,
 `ifdef RISCV

@@ -1,5 +1,4 @@
 module combi_decoder(input logic [31:0] instr,
-                     input logic armIn,
          `ifdef ARM
                      /* ARM only */
                      output logic PCSrcD,
@@ -15,6 +14,7 @@ module combi_decoder(input logic [31:0] instr,
                      output logic JumpD, // RISC-V only
          `endif
          `ifdef RISCV `ifdef ARM
+                     input logic armIn,
                      output logic armD,
          `endif `endif
                      output logic RegWriteD,

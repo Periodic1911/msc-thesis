@@ -2,13 +2,13 @@ module alu(
   input logic [2:0] ALUControlE,
   input logic [31:0] Op1E, Op2E,
 
-  output logic [31:0] ALUResultE,
 `ifdef ARM
   output logic [3:0] ALUFlags, // ARM only
 `endif
 `ifdef RISCV
-  output logic ZeroE // RISC-V only
+  output logic ZeroE, // RISC-V only
 `endif
+  output logic [31:0] ALUResultE
 );
 
 logic [31:0] addResult;

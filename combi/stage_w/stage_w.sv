@@ -86,7 +86,14 @@ flopr #(39) em_stage(clk, rst,
   );
 
 // PCPlus4W is RV only
+`ifdef RISCV
 mux3 #(32)result_mux(ALUResultW, ReadDataW, PCPlus4W,
                      ResultSrcW, ResultW);
+`endif
+
+`ifndef RISCV
+mux2 #(32)result_mux(ALUResultW, ReadDataW,
+                     ResultSrcW, ResultW);
+`endif
 
 endmodule

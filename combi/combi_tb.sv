@@ -23,13 +23,15 @@ end
 // check results
 always @(negedge clk) begin
   if(MemWrite) begin
-    if(DataAdr === 100 & WriteData === 25) begin
-      $display("Simulation succeeded");
+    if(DataAdr === 44 & WriteData === 25) begin
+      $display("ARM   Simulation succeeded");
       $exit;
-    end /*else if (DataAdr !== 96) begin
+    end else if(DataAdr === 100 & WriteData === 7) begin
+      $display("RISCV Simulation succeeded");
+    end else if (DataAdr !== 96) begin
       $display("Simulation failed");
       $exit;
-    end*/
+    end
   end
 end
 

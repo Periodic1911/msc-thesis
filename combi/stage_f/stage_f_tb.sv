@@ -14,6 +14,8 @@ logic [31:0] RDD;
 logic [31:0] PCF;
 logic [31:0] PCPlus4F;
 logic StallF;
+logic StallD = 0;
+logic FlushD = 0;
 
 stage_f test(.*);
 

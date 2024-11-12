@@ -1,5 +1,5 @@
 `define ARM
-`define RISCV
+//`define RISCV
 
 module combi (
   input logic clk, rst,

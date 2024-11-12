@@ -76,13 +76,17 @@ arm_decoder arm_dec(.*, .Op(ARM_Op), .RegW(ARM_RegWrite), .MemW(ARM_MemWrite), .
 `endif /* ARM */
 
 /* Combine RISC-V and ARM */
+always_comb
 `ifdef ARM
 `ifdef RISCV
-always_comb
-  if(armD) begin
+  if(armD)
+`endif
+  begin
+`ifdef RISCV
     /* Don't care about RISC-V outputs */
     ResultSrcD[1] = 1'bx;
     JumpD = 1'bx;
+`endif
 
     /* Shared */
     RegWriteD = ARM_RegWrite;
@@ -91,18 +95,29 @@ always_comb
     BranchD = ARM_Branch;
     ALUSrcD = ARM_ALUSrc;
     ImmSrcD = ARM_ImmSrc;
+`ifdef RISCV
     ResultSrcD[0] = MemtoReg;
+`else
+    ResultSrcD = MemtoReg;
+`endif
 
     /* ARM Only */
     PCSrcD = PCSrc;
     FlagWriteD = FlagW;
     RegSrcD = RegSrc;
+`endif
 
-  end else begin /* RISC-V */
+`ifdef RISCV
+`ifdef ARM
+  end else
+`endif
+  begin /* RISC-V */
+`ifdef ARM
     /* Don't care about ARM outputs */
     PCSrcD = 1'bx;
     FlagWriteD = 2'bx;
     RegSrcD = 2'bx;
+`endif
 
     /* Shared */
     RegWriteD = RV_RegWrite;
@@ -115,7 +130,11 @@ always_comb
     /* RISC-V */
     ResultSrcD = ResultSrc;
     JumpD = Jump;
+`endif
   end
+
+`ifdef ARM
+`ifdef RISCV
 
 /* decide instruction type */
 always_comb

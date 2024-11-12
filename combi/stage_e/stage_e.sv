@@ -4,9 +4,9 @@ module stage_e(
   input logic [31:0] Rd1D, Rd2D,
   input logic [31:0] immextD,
   input logic [4:0] RdD,
+  input logic [4:0] Rs1D, Rs2D, // RISC-V only
 `ifdef RISCV
   input logic [31:0] PCD, PCPlus4D, // RISC-V only
-  input logic [4:0] Rs1D, Rs2D, // RISC-V only
 `ifdef ARM
   input logic armD, // combi only
 `endif
@@ -115,16 +115,14 @@ assign PCTargetE = PCE + immextE;
 `endif
 
 `ifdef RISCV
-flopr #(76) de_stage_riscv(clk, (rst | FlushE),
+flopr #(68) de_stage_riscv(clk, (rst | FlushE),
   {
   PCD, PCPlus4D, // RISC-V only
-  Rs1D, Rs2D, // RISC-V only
   JumpD, // RISC-V only
   ResultSrcD[1] // bit 1 RISC-V only
   },
   {
   PCE, PCPlus4E, // RISC-V only
-  Rs1E, Rs2E, // RISC-V only
   JumpE, // RISC-V only
   ResultSrcE[1] // bit 1 RISC-V only
   }
@@ -155,9 +153,10 @@ flopr #(1) de_stage_combi(clk, (rst | FlushE),
 );
 `endif `endif
 
-flopr #(109) de_stage(clk, (rst | FlushE),
+flopr #(119) de_stage(clk, (rst | FlushE),
   {
   Rd1D, Rd2D, RdD, immextD,
+  Rs1D, Rs2D,
   /* control inputs */
   RegWriteD, MemWriteD, BranchD, ALUSrcD,
   ALUControlD,
@@ -168,6 +167,7 @@ flopr #(109) de_stage(clk, (rst | FlushE),
   },
   {
   Rd1E, Rd2E, RdE, immextE,
+  Rs1E, Rs2E,
   /* control inputs */
   RegWrite, MemWrite, BranchE, ALUSrcE,
   ALUControlE,

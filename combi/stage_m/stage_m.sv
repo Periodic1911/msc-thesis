@@ -27,24 +27,40 @@ module stage_m (
 logic [31:0] WriteDataM;
 logic MemWriteM;
 
-flopr #(107) em_stage(clk, rst,
-  { ALUResultE, WriteDataE,
+
+`ifdef RISCV
+flopr #(32) em_stage_riscv(clk, rst,
    PCPlus4E, // RV only
-   RdE,
+   PCPlus4M // RV only
+);
+`endif
+
+`ifdef ARM
+flopr #(1) em_stage_arm(clk, rst,
    PCSrcE, // ARM only
+   PCSrcM // ARM only
+);
+`endif
+
+`ifdef RISCV `ifdef ARM
+flopr #(1) em_stage_combi(clk, rst,
+   armE,
+   armM
+);
+`endif `endif
+
+flopr #(73) em_stage(clk, rst,
+  { ALUResultE, WriteDataE,
+   RdE,
    RegWriteE,
    ResultSrcE,
-   MemWriteE,
-   armE
+   MemWriteE
    },
   { ALUResultM, WriteDataM,
-   PCPlus4M, // RV only
    RdM,
-   PCSrcM, // ARM only
    RegWriteM,
    ResultSrcM,
-   MemWriteM,
-   armM
+   MemWriteM
    }
    );
 

@@ -51,9 +51,9 @@ module stage_e(
 `ifdef RISCV
   output logic RVPCSrcE, // RISC-V only
   output logic [31:0] PCTargetE, // RISC-V only
-`endif
 `ifdef ARM
   output logic armE, // combi only
+`endif
 `endif
 
   input logic [31:0] ALUResultM, ResultW,
@@ -86,8 +86,13 @@ logic [3:0] FlagsE, FlagsD; // ARM only
 // ARM only
 logic RegWriteE_ARM, MemWriteE_ARM;
 logic [3:0] ALUFlags; // ARM only
+`ifdef RISCV
 assign RegWriteE = armE ? RegWriteE_ARM : RegWrite;
 assign MemWriteE = armE ? MemWriteE_ARM : MemWrite;
+`else
+assign RegWriteE = RegWriteE_ARM;
+assign MemWriteE = MemWriteE_ARM;
+`endif
 condlogic condl(.*);
 `endif
 

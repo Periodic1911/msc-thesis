@@ -17,8 +17,8 @@ module combi (
              logic [31:0] Rd1D, Rd2D;
              logic [31:0] immextD;
              logic [4:0] RdD;
+             logic [4:0] Rs1D, Rs2D;
 `ifdef RISCV logic [31:0] PCD, PCPlus4D; `endif
-`ifdef RISCV logic [4:0] Rs1D, Rs2D; `endif
 
 `ifdef RISCV
   `ifdef ARM logic armD; `endif
@@ -60,7 +60,7 @@ module combi (
 `ifdef ARM   logic PCSrcM; `endif
 `ifdef RISCV logic [31:0] PCPlus4M; `endif
 `ifdef RISCV logic [1:0] ResultSrcM; // bit 1 RV only
-`else        logic [1:0] ResultSrcM; `endif
+`else        logic ResultSrcM; `endif
 
 `ifdef RISCV
   `ifdef ARM logic armM; `endif

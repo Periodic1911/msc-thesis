@@ -31,7 +31,11 @@ module stage_w (
   output logic RegWriteW
   );
 
+`ifdef RISCV
 logic [1:0] ResultSrcW;
+`else
+logic ResultSrcW;
+`endif
 `ifdef RISCV
 logic [31:0] PCPlus4W; // RV only
 `endif

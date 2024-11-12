@@ -1,8 +1,9 @@
 module stage_m (
-  input logic clk, rst, arm,
+  input logic clk, rst,
   input logic [31:0] ALUResultE, WriteDataE,
   input logic [31:0] PCPlus4E, // RV only
   input logic [4:0] RdE,
+  input logic armE, // combi only
 
   output logic [31:0] ALUResultM, ReadDataW,
   output logic [31:0] PCPlus4M, // RV only
@@ -16,6 +17,7 @@ module stage_m (
   output logic PCSrcM, // ARM only
   output logic RegWriteM,
   output logic [1:0] ResultSrcM, // bit 1 RV only
+  output logic armM, // combi only
 
   /* debug port */
   output logic [31:0] WriteData, DataAddr,
@@ -25,14 +27,15 @@ module stage_m (
 logic [31:0] WriteDataM;
 logic MemWriteM;
 
-flopr #(106) em_stage(clk, rst,
+flopr #(107) em_stage(clk, rst,
   { ALUResultE, WriteDataE,
    PCPlus4E, // RV only
    RdE,
    PCSrcE, // ARM only
    RegWriteE,
    ResultSrcE,
-   MemWriteE
+   MemWriteE,
+   armE
    },
   { ALUResultM, WriteDataM,
    PCPlus4M, // RV only
@@ -40,7 +43,8 @@ flopr #(106) em_stage(clk, rst,
    PCSrcM, // ARM only
    RegWriteM,
    ResultSrcM,
-   MemWriteM
+   MemWriteM,
+   armM
    }
    );
 

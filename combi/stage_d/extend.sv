@@ -1,4 +1,4 @@
-module extend(input logic arm,
+module extend(input logic armD, // combi only
               input logic [31:0] instr,
               input logic [1:0] immsrc,
               output logic [31:0] immext);
@@ -7,7 +7,7 @@ logic [31:7] rv_instr = instr[31:7];
 logic [23:0] arm_instr = instr[23:0];
 
 always_comb
-  if(arm)
+  if(armD)
     case(immsrc)
       // 8-bit unsigned immediate
       2'b00: immext = {24'b0, instr[7:0]};

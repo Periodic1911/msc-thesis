@@ -1,11 +1,12 @@
 module stage_e(
-  input logic clk, rst, arm,
+  input logic clk, rst,
 
   input logic [31:0] Rd1D, Rd2D,
   input logic [31:0] immextD,
   input logic [4:0] RdD,
   input logic [31:0] PCD, PCPlus4D, // RISC-V only
   input logic [4:0] Rs1D, Rs2D, // RISC-V only
+  input logic armD, // combi only
 
   output logic [31:0] PCPlus4E, // RISC-V only
   output logic [4:0] RdE,
@@ -27,6 +28,7 @@ module stage_e(
   output logic BranchTakenE, // ARM only
   output logic RVPCSrcE, // RISC-V only
   output logic [31:0] PCTargetE, // RISC-V only
+  output logic armE, // combi only
 
   input logic [31:0] ALUResultM, ResultW,
 
@@ -50,8 +52,8 @@ logic [3:0] FlagsE, FlagsD; // ARM only
 
 // ARM only
 logic RegWriteE_ARM, MemWriteE_ARM;
-assign RegWriteE = arm ? RegWriteE_ARM : RegWrite;
-assign MemWriteE = arm ? MemWriteE_ARM : MemWrite;
+assign RegWriteE = armE ? RegWriteE_ARM : RegWrite;
+assign MemWriteE = armE ? MemWriteE_ARM : MemWrite;
 condlogic condl(.*);
 
 rvbranch branch_rv(.*); // RV only
@@ -68,7 +70,7 @@ mux2 #(32)immMux2(WriteDataE, immextE, ALUSrcE, Op2E);
 
 assign PCTargetE = PCE + immextE;
 
-flopr #(196) de_stage(clk, (rst | FlushE),
+flopr #(197) de_stage(clk, (rst | FlushE),
   {
   Rd1D, Rd2D, RdD, immextD,
   PCD, PCPlus4D, // RISC-V only
@@ -81,7 +83,8 @@ flopr #(196) de_stage(clk, (rst | FlushE),
   CondD, // ARM only
   FlagsD, // ARM only
   ResultSrcD, // bit 1 RISC-V only
-  JumpD // RISC-V only
+  JumpD, // RISC-V only
+  armD // combi only
   },
   {
   Rd1E, Rd2E, RdE, immextE,
@@ -95,7 +98,8 @@ flopr #(196) de_stage(clk, (rst | FlushE),
   CondE, // ARM only
   FlagsE, // ARM only
   ResultSrcE, // bit 1 RISC-V only
-  JumpE // RISC-V only
+  JumpE, // RISC-V only
+  armE // combi only
   }
 );
 

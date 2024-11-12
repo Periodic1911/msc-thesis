@@ -1,5 +1,5 @@
 module stage_d(
-  input logic clk, rst, arm,
+  input logic clk, rst,
 
   input logic [31:0] RDD, PCPlus4F, ResultW,
   input logic [4:0] RdW,
@@ -21,6 +21,7 @@ module stage_d(
   output logic [3:0] CondD, // ARM only
   output logic [1:0] ResultSrcD, // bit 1 RISC-V only
   output logic JumpD, // RISC-V only
+  output logic armD, // combi only
 
   input logic StallD, FlushD
   );
@@ -31,11 +32,11 @@ logic [1:0] RegSrcD; // ARM only
 
 combi_decoder dec(.*);
 
-assign RdD = (arm) ? {1'b0, instr[15:12]} : instr[11:7];
+assign RdD = (armD) ? {1'b0, instr[15:12]} : instr[11:7];
 
 logic [4:0] ra1, ra2;
 always_comb
-  if(arm) begin
+  if(armD) begin
     // Mux ARM RegSrc
     ra1 = RegSrcD[0] ? 5'd15 : {1'b0, instr[19:16]};
     ra2 = {1'b0, RegSrcD[1] ? RdD[3:0] : instr[3:0]};
@@ -61,9 +62,11 @@ assign PCPlus4D = PCPlus4D_r;
 
 logic [31:0] instr = RDD;
 
-flopenr #(64) fd_stage(clk, (rst | FlushD), ~StallD,
-  {PCF, PCPlus4F},
-  {PCD_r, PCPlus4D_r}
+logic armIn; // combi only
+
+flopenr #(65) fd_stage(clk, (rst | FlushD), ~StallD,
+  {PCF, PCPlus4F, armD},
+  {PCD_r, PCPlus4D_r, armIn}
 );
 
 endmodule

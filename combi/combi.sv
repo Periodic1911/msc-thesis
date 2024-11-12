@@ -1,5 +1,5 @@
 module combi (
-  input logic clk, rst, arm,
+  input logic clk, rst,
   output logic [31:0] WriteData, DataAddr,
   output logic MemWrite
 );
@@ -16,8 +16,9 @@ logic [31:0] immextD;
 logic [4:0] RdD;
 logic [31:0] PCD, PCPlus4D; // RISC-V only
 logic [4:0] Rs1D, Rs2D; // RISC-V only
+logic armD;
 
-  /* control outputs */
+/* control outputs */
 logic RegWriteD, MemWriteD, BranchD, ALUSrcD;
 logic [2:0] ALUControlD;
 logic PCSrcD; // ARM only
@@ -41,6 +42,7 @@ logic [31:0] PCTargetE; // RISC-V only
 logic [31:0] ALUResultE;
 
 logic [4:0] Rs1E, Rs2E;
+logic armE;
 
 /* memory */
 logic [31:0] ALUResultM, ReadDataW;
@@ -50,12 +52,14 @@ logic [4:0] RdM;
 logic PCSrcM; // ARM only
 logic RegWriteM;
 logic [1:0] ResultSrcM; // bit 1 RV only
+logic armM;
 
 /* writeback */
 logic [4:0] RdW;
 logic [31:0] ResultW;
 logic PCSrcW; // ARM only
 logic RegWriteW;
+logic armW;
 
 /* hazzard unit */
 logic StallF, StallD, FlushD, FlushE;

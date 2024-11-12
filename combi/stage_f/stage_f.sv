@@ -1,7 +1,9 @@
 module stage_f (
   input clk,
   input rst,
+`ifdef RISCV `ifdef ARM
   input armW, armE, // combi only
+`endif `endif
 
   input RVPCSrcE,
   input BranchTakenE,
@@ -21,10 +23,23 @@ module stage_f (
 
 logic [31:0] PCF3, PCF2, PCF1;
 /* ARM muxes */
-assign PCF3 = (armW & PCSrcW) ? ResultW : PCPlus4F;
-assign PCF2 = (armE & BranchTakenE) ? ALUResultE : PCF3;
+`ifdef ARM
+  `ifdef RISCV
+    assign PCF3 = (armW & PCSrcW) ? ResultW : PCPlus4F;
+    assign PCF2 = (armE & BranchTakenE) ? ALUResultE : PCF3;
+  `else
+    assign PCF3 = PCSrcW ? ResultW : PCPlus4F;
+    assign PCF2 = BranchTakenE ? ALUResultE : PCF3;
+  `endif
+`endif
 /* RV mux */
-assign PCF1 = (!armE & RVPCSrcE) ? PCTargetE : PCF2;
+`ifdef RISCV
+  `ifdef ARM
+    assign PCF1 = (!armE & RVPCSrcE) ? PCTargetE : PCF2;
+  `else
+    assign PCF1 = RVPCSrcE ? PCTargetE : PCF2;
+  `endif
+`endif
 
 logic [31:0] _PCF;
 /* PC register */

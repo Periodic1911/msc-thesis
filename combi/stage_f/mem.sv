@@ -11,6 +11,14 @@ module prog_mem #(parameter SIZE_LOG2=13) (input clk, input rst, input [SIZE_LOG
 
   /* initialize memory */
   initial begin
-    $readmemh("stage_f/program.hex", mem_ff);
+  `ifdef  ARM `ifdef  RISCV
+    $readmemh("stage_f/program_combi.hex", mem_ff);
+  `endif `endif
+  `ifdef  ARM `ifndef RISCV
+    $readmemh("stage_f/program_arm.hex", mem_ff);
+  `endif `endif
+  `ifndef ARM `ifdef  RISCV
+    $readmemh("stage_f/program_rv.hex", mem_ff);
+  `endif `endif
   end
 endmodule

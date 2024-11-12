@@ -64,7 +64,7 @@ flopr #(73) em_stage(clk, rst,
    }
    );
 
-ram #(13)datamem(clk, rst, MemWriteM, ALUResultM[14:2], WriteDataM, ReadDataW);
+ram #(13)datamem(clk, rst, MemWriteM, ALUResultM[12:0], WriteDataM, ReadDataW);
 
 assign WriteData = WriteDataM;
 assign DataAddr = ALUResultM;

@@ -14,8 +14,8 @@ module stage_d(
   output logic [4:0] RdD,
 `ifdef RISCV
   output logic [31:0] PCD, PCPlus4D, // RISC-V only
-  output logic [4:0] Rs1D, Rs2D, // RISC-V only
 `endif
+  output logic [4:0] Rs1D, Rs2D,
 
   /* control outputs */
   output logic RegWriteD, MemWriteD, BranchD, ALUSrcD,
@@ -94,17 +94,19 @@ regfile rf(.clk(~clk), .*, .wa3(RdW), .we3(RegWriteW), .wd3(ResultW),
 
 extend ext(.*, .immsrc(ImmSrcD), .immext(immextD));
 
+logic [31:0] instr = RDD;
+
+`ifdef RISCV
 logic [31:0] PCD_r, PCPlus4D_r;
 assign PCD = PCD_r;
 assign PCPlus4D = PCPlus4D_r;
-
-logic [31:0] instr = RDD;
 
 flopenr #(64) fd_stage(
   clk, (rst | FlushD), ~StallD,
   {PCF, PCPlus4F},
   {PCD_r, PCPlus4D_r}
 );
+`endif
 
 `ifdef RISCV `ifdef ARM
 logic armIn; // combi only

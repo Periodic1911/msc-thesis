@@ -105,8 +105,11 @@ mux3 #(32)forwardMux1(Rd1E, ResultW, ALUResultM, ForwardAE, Op1E);
 mux3 #(32)forwardMux2(Rd2E, ResultW, ALUResultM, ForwardBE, WriteDataE);
 mux2 #(32)immMux2(WriteDataE, immextE, ALUSrcE, Op2E);
 
+`ifdef RISCV
 assign PCTargetE = PCE + immextE;
+`endif
 
+`ifdef RISCV
 flopr #(76) de_stage_riscv(clk, (rst | FlushE),
   {
   PCD, PCPlus4D, // RISC-V only
@@ -121,7 +124,9 @@ flopr #(76) de_stage_riscv(clk, (rst | FlushE),
   ResultSrcE[1] // bit 1 RISC-V only
   }
 );
+`endif
 
+`ifdef ARM
 flopr #(11) de_stage_arm(clk, (rst | FlushE),
   {
   PCSrcD, // ARM only
@@ -136,11 +141,14 @@ flopr #(11) de_stage_arm(clk, (rst | FlushE),
   FlagsE // ARM only
   }
 );
+`endif
 
+`ifdef RISCV `ifdef ARM
 flopr #(1) de_stage_combi(clk, (rst | FlushE),
   armD, // combi only
   armE  // combi only
 );
+`endif `endif
 
 flopr #(109) de_stage(clk, (rst | FlushE),
   {

@@ -61,18 +61,27 @@ assign PCWrPendingF = PCSrcD | PCSrcE | PCSrcM; // ARM only
 `endif `endif
 
 assign StallD = LDStall;
+
+`ifndef RISCV `ifdef ARM
+/* ARM */
+assign StallF = LDStall | PCWrPendingF;
+assign FlushE = LDStall | BranchTakenE;
+assign FlushD = PCWrPendingF | PCSrcW | BranchTakenE;
+`endif `endif
+
+`ifdef RISCV `ifndef ARM
+/* RISC-V */
+assign StallF = LDStall;
+assign FlushE = LDStall | RVPCSrcE;
+assign FlushD = RVPCSrcE;
+`endif `endif
+
+`ifdef RISCV `ifdef ARM
+/* combi */
 assign StallF = LDStall | PCWrPendingF;
 assign FlushE = LDStall | (armE & BranchTakenE) | (~armE & RVPCSrcE);
-assign FlushD = 
-`ifndef RISCV `ifdef ARM
-              (PCWrPendingF | PCSrcW | BranchTakenE); // ARM
-`endif `endif
-`ifdef RISCV `ifdef ARM
-              (PCWrPendingF | (armW & PCSrcW) | (armE & BranchTakenE)) // ARM
+assign FlushD = (PCWrPendingF | (armW & PCSrcW) | (armE & BranchTakenE)) // ARM
               | (~armE & RVPCSrcE); // RISC-V
-`endif `endif
-`ifdef RISCV `ifndef ARM
-              RVPCSrcE; // RISC-V
 `endif `endif
 
 endmodule

@@ -1,23 +1,32 @@
 module combi_decoder(input logic [31:0] instr,
                      input logic armIn,
+         `ifdef ARM
+                     /* ARM only */
+                     output logic PCSrcD,
+                     output logic [1:0] FlagWriteD,
+                     output logic [1:0] RegSrcD,
+         `endif
+         `ifdef RISCV
+                     output logic [1:0] ResultSrcD, // bit 1 RISC-V only
+         `else
+                     output logic ResultSrcD, // bit 1 RISC-V only
+         `endif
+         `ifdef RISCV
+                     output logic JumpD, // RISC-V only
+         `endif
+         `ifdef RISCV `ifdef ARM
                      output logic armD,
+         `endif `endif
                      output logic RegWriteD,
                      output logic MemWriteD,
                      output logic [2:0] ALUControlD,
                      output logic BranchD,
                      output logic ALUSrcD,
-                     output logic [1:0] ImmSrcD,
-
-                     /* ARM only */
-                     output logic PCSrcD,
-                     output logic [1:0] FlagWriteD,
-                     output logic [1:0] RegSrcD,
-
-                     output logic [1:0] ResultSrcD, // bit 1 RISC-V only
-                     output logic JumpD // RISC-V only
+                     output logic [1:0] ImmSrcD
                      );
 
 /* RISC-V */
+`ifdef RISCV
 logic opb5, funct7b5;
 logic [2:0] funct3;
 logic [1:0] ALUOp;
@@ -26,7 +35,9 @@ logic [6:0] RV_op;
 logic [1:0] ResultSrc;
 logic RV_MemWrite, RV_Branch, RV_ALUSrc, RV_RegWrite, Jump;
 logic [1:0] RV_ImmSrc;
+`ifdef ARM
 logic RV_mainValid, RV_ALUValid, RV_valid; //combi only
+`endif
 
 assign {opb5, funct7b5, funct3, RV_op} = {
   instr[5],
@@ -37,16 +48,23 @@ assign {opb5, funct7b5, funct3, RV_op} = {
 rv_aludec rv_adec(.*, .ALUControl(RV_ALUControl));
 rv_maindec rv_mdec(.*, .op(RV_op), .MemWrite(RV_MemWrite), .Branch(RV_Branch), .RegWrite(RV_RegWrite), .ImmSrc(RV_ImmSrc), .ALUSrc(RV_ALUSrc) );
 
+`ifdef ARM
 assign RV_valid = RV_mainValid & RV_ALUValid; // combi only
+`endif
+
+`endif /* RISC-V */
 
 /* ARM */
+`ifdef ARM
 logic [1:0] ARM_Op;
 logic [5:0] Funct;
 logic [3:0] Rd;
 logic [1:0] FlagW;
 logic PCSrc, ARM_RegWrite, ARM_MemWrite, MemtoReg, ARM_ALUSrc, ARM_Branch;
 logic [1:0] ARM_ImmSrc, RegSrc, ARM_ALUControl;
+`ifdef RISCV
 logic ARM_valid; // combi only
+`endif
 
 assign {ARM_Op, Funct, Rd} = {
   instr[27:26],
@@ -55,7 +73,11 @@ assign {ARM_Op, Funct, Rd} = {
 
 arm_decoder arm_dec(.*, .Op(ARM_Op), .RegW(ARM_RegWrite), .MemW(ARM_MemWrite), .ALUSrc(ARM_ALUSrc), .ImmSrc(ARM_ImmSrc), .ALUControl(ARM_ALUControl), .Branch(ARM_Branch) );
 
+`endif /* ARM */
+
 /* Combine RISC-V and ARM */
+`ifdef ARM
+`ifdef RISCV
 always_comb
   if(armD) begin
     /* Don't care about RISC-V outputs */
@@ -104,21 +126,28 @@ always_comb
     2'b11: armD = armIn;
   endcase
 
+`endif /* ARM and RISCV */
+`endif
+
 endmodule
 
-
+`ifdef RISCV
 module rv_aludec(input logic opb5,
                  input logic [2:0] funct3,
                  input logic funct7b5,
                  input logic [1:0] ALUOp,
+`ifdef RISCV `ifdef ARM
                  output logic RV_ALUValid, // combi only
+`endif `endif
                  output logic [2:0] ALUControl);
 
 logic RtypeSub;
 assign RtypeSub = funct7b5 & opb5; // TRUE for R–type subtract
 
 always_comb begin
+`ifdef RISCV `ifdef ARM
   RV_ALUValid = 1; // combi only
+`endif `endif
   case(ALUOp)
     2'b00: ALUControl = 3'b000; // addition
     2'b01: ALUControl = 3'b001; // subtraction
@@ -132,7 +161,9 @@ always_comb begin
       3'b111:  ALUControl = 3'b010; // and, andi
       default: begin
         ALUControl = 3'bxxx; // ???
+`ifdef RISCV `ifdef ARM
         RV_ALUValid = 0; // combi only
+`endif `endif
       end
     endcase
   endcase
@@ -141,7 +172,9 @@ end
 endmodule
 
 module rv_maindec(input logic [6:0] op,
+`ifdef RISCV `ifdef ARM
                   output logic RV_mainValid, // combi only
+`endif `endif
                   output logic [1:0] ResultSrc,
                   output logic MemWrite,
                   output logic Branch, ALUSrc,
@@ -155,7 +188,9 @@ assign {RegWrite, ImmSrc, ALUSrc, MemWrite,
   ResultSrc, Branch, ALUOp, Jump} = controls;
 
 always_comb begin
+`ifdef RISCV `ifdef ARM
   RV_mainValid = 1; // combi only
+`endif `endif
   case(op)
     // RegWrite_ImmSrc_ALUSrc_MemWrite_ResultSrc_Branch_ALUOp_Jump
     7'b0000011: controls = 11'b1_00_1_0_01_0_00_0; // lw
@@ -166,17 +201,23 @@ always_comb begin
     7'b1101111: controls = 11'b1_11_0_0_10_0_00_1; // jal
     default: begin
       controls = 11'bx_xx_x_x_xx_x_xx_x; // ???
+`ifdef RISCV `ifdef ARM
       RV_mainValid = 0; // combi only
+`endif `endif
     end
   endcase
 end
 
 endmodule
+`endif /* RISCV */
 
+`ifdef ARM
 module arm_decoder(input logic [1:0] Op,
                    input logic [5:0] Funct,
                    input logic [3:0] Rd,
+`ifdef RISCV `ifdef ARM
                    output logic ARM_valid, // combi only
+`endif `endif
                    output logic Branch,
                    output logic [1:0] FlagW,
                    output logic PCSrc, RegW, MemW,
@@ -185,13 +226,17 @@ module arm_decoder(input logic [1:0] Op,
 
 logic [9:0] controls;
 logic ALUOp;
+`ifdef RISCV `ifdef ARM
 logic mainValid, aluValid; // combi only
 
 assign ARM_valid = mainValid & aluValid; // combi only
+`endif `endif
 
 // Main Decoder
 always_comb begin
+`ifdef RISCV `ifdef ARM
   mainValid = 1; // combi only
+`endif `endif
   case(Op)
     // Data-processing immediate
     2'b00: if (Funct[5]) controls = 10'b0000101001;
@@ -206,7 +251,9 @@ always_comb begin
     // Unimplemented
     default: begin
       controls = 10'bx;
+`ifdef RISCV `ifdef ARM
       mainValid = 0; // combi only
+`endif `endif
     end
   endcase
 end
@@ -216,7 +263,9 @@ assign {RegSrc, ImmSrc, ALUSrc, MemtoReg,
 
 // ALU Decoder
 always_comb begin
+`ifdef RISCV `ifdef ARM
   aluValid = 1; // combi only
+`endif `endif
   if (ALUOp) begin // which DP instr?
     case(Funct[4:1])
       4'b0100: ALUControl = 2'b00; // ADD
@@ -225,7 +274,9 @@ always_comb begin
       4'b1100: ALUControl = 2'b11; // ORR
       default: begin
         ALUControl = 2'bx; // unimplemented
+`ifdef RISCV `ifdef ARM
         aluValid = 0; // combi only
+`endif `endif
       end
     endcase
     // update flags if S bit is set (C & V only for arith)
@@ -242,3 +293,4 @@ end
 assign PCSrc = ((Rd == 4'b1111) & RegW);
 
 endmodule
+`endif /* ARM */

@@ -1,13 +1,16 @@
-module extend(input logic armD, // combi only
+module extend(
+`ifdef RISCV `ifdef ARM
+              input logic armD, // combi only
+`endif `endif
               input logic [31:0] instr,
               input logic [1:0] immsrc,
               output logic [31:0] immext);
 
-logic [31:7] rv_instr = instr[31:7];
-logic [23:0] arm_instr = instr[23:0];
-
 always_comb
+`ifdef ARM
+  `ifdef RISCV
   if(armD)
+  `endif
     case(immsrc)
       // 8-bit unsigned immediate
       2'b00: immext = {24'b0, instr[7:0]};
@@ -17,7 +20,11 @@ always_comb
       2'b10: immext = {{6{instr[23]}}, instr[23:0], 2'b00};
       default: immext = 32'bx; // undefined
     endcase
+  `ifdef RISCV
   else
+  `endif
+`endif /* ARM */
+`ifdef RISCV
     case(immsrc)
       // I−type
       2'b00: immext = {{20{instr[31]}}, instr[31:20]};
@@ -32,5 +39,6 @@ always_comb
                        instr[20], instr[30:21], 1'b0};
       default: immext = 32'bx; // undefined
     endcase
+`endif
 
 endmodule

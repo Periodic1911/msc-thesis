@@ -1,5 +1,6 @@
 module combi_decoder(input logic [31:0] instr,
                      input logic armIn,
+                     input logic wasNotFlushed,
                      output logic armD,
                      output logic RegWriteD,
                      output logic MemWriteD,
@@ -97,11 +98,12 @@ always_comb
 
 /* decide instruction type */
 always_comb
-  case({RV_valid, ARM_valid})
-    2'b00: armD = 1'bx; // ???
-    2'b01: armD = 1'b1;
-    2'b10: armD = 1'b0;
-    2'b11: armD = armIn;
+  casez({RV_valid, ARM_valid, wasNotFlushed})
+    3'b001: armD = 1'bx; // ???
+    3'b011: armD = 1'b1;
+    3'b101: armD = 1'b0;
+    3'b111: armD = armIn; // don't change if either is valid
+    3'b??0: armD = armIn; // don't change on flush
   endcase
 
 endmodule

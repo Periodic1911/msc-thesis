@@ -1,3 +1,6 @@
+`define ARM
+`define RISCV
+
 module combi (
   input logic clk, rst,
   output logic [31:0] WriteData, DataAddr,

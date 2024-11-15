@@ -26,6 +26,30 @@ module stage_d(
   input logic StallD, FlushD
   );
 
+`ifdef RISCV `ifdef ARM
+logic armIn; // combi only
+logic wasNotFlushed; // combi only
+
+flopenr #(1) fd_stage_armbit(clk, rst, ~StallD,
+  armD,
+  armIn
+);
+
+flopenr #(1) fd_stage_wasFlushed(clk, (rst | FlushD), ~StallD,
+  1,
+  wasNotFlushed
+);
+`endif `endif
+`ifdef ARM `ifndef RISCV
+logic armIn = 1;
+armD = 1;
+`endif `endif
+`ifdef RISCV `ifndef ARM
+logic armIn = 0;
+armD = 0;
+`endif `endif
+
+
 logic [31:0] PCPlus8D = PCPlus4F;
 logic [1:0] ImmSrcD;
 logic [1:0] RegSrcD; // ARM only
@@ -62,11 +86,9 @@ assign PCPlus4D = PCPlus4D_r;
 
 logic [31:0] instr = RDD;
 
-logic armIn; // combi only
-
-flopenr #(65) fd_stage(clk, (rst | FlushD), ~StallD,
-  {PCF, PCPlus4F, armD},
-  {PCD_r, PCPlus4D_r, armIn}
+flopenr #(64) fd_stage(clk, (rst | FlushD), ~StallD,
+  {PCF, PCPlus4F},
+  {PCD_r, PCPlus4D_r}
 );
 
 endmodule

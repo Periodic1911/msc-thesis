@@ -1,0 +1,31 @@
+#alu ops
+
+add
+sub
+xor
+or
+
+and
+lsl
+lsr
+asr
+
+slt
+sltu
+immfwd
+
+#mem ops
+byte
+half
+word
+
+sign-ext
+zero-ext
+
+#imm ops
+imm20 << 12
+
+
+combi 2260
+rv 1649
+arm 1530

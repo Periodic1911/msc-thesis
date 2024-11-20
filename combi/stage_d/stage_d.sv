@@ -53,7 +53,7 @@ assign armD = 0;
 
 
 logic [31:0] PCPlus8D = PCPlus4F;
-logic [1:0] ImmSrcD;
+logic [2:0] ImmSrcD;
 logic [1:0] RegSrcD; // ARM only
 
 combi_decoder dec(.*);

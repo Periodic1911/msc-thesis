@@ -1,29 +1,29 @@
 #alu ops
 
-add
-sub
-xor
-or
+[] add
+[] sub
+[] xor
+[] or
 
-and
-lsl
-lsr
-asr
+[] and
+[] lsl
+[] lsr
+[] asr
 
-slt
-sltu
-immfwd
+[] slt
+[] sltu
+[] immfwd
 
 #mem ops
-byte
-half
-word
+[] byte
+[] half
+[] word
 
-sign-ext
-zero-ext
+[] sign-ext
+[] zero-ext
 
 #imm ops
-imm20 << 12
+[x] imm20 << 12
 
 
 combi 2260

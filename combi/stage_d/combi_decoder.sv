@@ -6,7 +6,7 @@ module combi_decoder(input logic [31:0] instr,
                      output logic [2:0] ALUControlD,
                      output logic BranchD,
                      output logic ALUSrcD,
-                     output logic [1:0] ImmSrcD,
+                     output logic [2:0] ImmSrcD,
 
                      /* ARM only */
                      output logic PCSrcD,
@@ -34,7 +34,7 @@ logic [2:0] RV_ALUControl;
 logic [6:0] RV_op;
 logic [1:0] ResultSrc;
 logic RV_MemWrite, RV_Branch, RV_ALUSrc, RV_RegWrite, Jump;
-logic [1:0] RV_ImmSrc;
+logic [2:0] RV_ImmSrc;
 logic RV_mainValid, RV_ALUValid, RV_valid; //combi only
 
 assign {opb5, funct7b5, funct3, RV_op} = {
@@ -69,6 +69,7 @@ always_comb
   if(armD) begin
     /* Don't care about RISC-V outputs */
     ResultSrcD[1] = 1'bx;
+    ImmSrcD[2] = 1'bx;
     JumpD = 1'bx;
 
     /* Shared */
@@ -77,7 +78,7 @@ always_comb
     ALUControlD = {1'bx, ARM_ALUControl};
     BranchD = ARM_Branch;
     ALUSrcD = ARM_ALUSrc;
-    ImmSrcD = ARM_ImmSrc;
+    ImmSrcD[1:0] = ARM_ImmSrc;
     ResultSrcD[0] = MemtoReg;
 
     /* ARM Only */
@@ -156,10 +157,10 @@ module rv_maindec(input logic [6:0] op,
                   output logic MemWrite,
                   output logic Branch, ALUSrc,
                   output logic RegWrite, Jump,
-                  output logic [1:0] ImmSrc,
+                  output logic [2:0] ImmSrc,
                   output logic [1:0] ALUOp);
 
-logic [10:0] controls;
+logic [11:0] controls;
 
 assign {RegWrite, ImmSrc, ALUSrc, MemWrite,
   ResultSrc, Branch, ALUOp, Jump} = controls;
@@ -168,14 +169,15 @@ always_comb begin
   RV_mainValid = 1; // combi only
   case(op)
     // RegWrite_ImmSrc_ALUSrc_MemWrite_ResultSrc_Branch_ALUOp_Jump
-    7'b0000011: controls = 11'b1_00_1_0_01_0_00_0; // lw
-    7'b0100011: controls = 11'b0_01_1_1_00_0_00_0; // sw
-    7'b0110011: controls = 11'b1_xx_0_0_00_0_10_0; // R–type
-    7'b1100011: controls = 11'b0_10_0_0_00_1_01_0; // beq
-    7'b0010011: controls = 11'b1_00_1_0_00_0_10_0; // I–type ALU
-    7'b1101111: controls = 11'b1_11_0_0_10_0_00_1; // jal
+    7'b0000011: controls = 12'b1_000_1_0_01_0_00_0; // lw
+    7'b0100011: controls = 12'b0_001_1_1_00_0_00_0; // sw
+    7'b0110011: controls = 12'b1_0xx_0_0_00_0_10_0; // R–type
+    7'b1100011: controls = 12'b0_010_0_0_00_1_01_0; // beq
+    7'b0010011: controls = 12'b1_000_1_0_00_0_10_0; // I–type ALU
+    7'b1101111: controls = 12'b1_011_0_0_10_0_00_1; // jal
+    7'b0110111: controls = 12'b1_111_1_0_00_0_00_0; // lui
     default: begin
-      controls = 11'bx_xx_x_x_xx_x_xx_x; // ???
+      controls = 12'bx_xxx_x_x_xx_x_xx_x; // ???
       RV_mainValid = 0; // combi only
     end
   endcase

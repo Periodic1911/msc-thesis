@@ -1,5 +1,5 @@
 module alu(
-  input logic [2:0] ALUControlE,
+  input logic [3:0] ALUControlE,
   input logic [31:0] Op1E, Op2E,
 
   output logic [31:0] ALUResultE,
@@ -15,12 +15,12 @@ add_sub as(.a(Op1E), .b(Op2E), .q(addResult), .add(~ALUControlE[0]), .cOut(carry
 
 always_comb
   case(ALUControlE)
-    3'b000: ALUResultE = addResult; // add
-    3'b001: ALUResultE = addResult; // sub
-    3'b010: ALUResultE = Op1E & Op2E; // and
-    3'b011: ALUResultE = Op1E | Op2E; // or
+    4'b0000: ALUResultE = addResult; // add
+    4'b0001: ALUResultE = addResult; // sub
+    4'b0010: ALUResultE = Op1E & Op2E; // and
+    4'b0011: ALUResultE = Op1E | Op2E; // or
     // RISC-V only
-    3'b101: ALUResultE = (Op1E < Op2E) ? 32'b1 : 32'b0; // slt TODO: reuse add_sub carry chain?
+    4'b0101: ALUResultE = (Op1E < Op2E) ? 32'b1 : 32'b0; // slt TODO: reuse add_sub carry chain?
     default: ALUResultE = 32'hxxxxxxxx; /// ???
   endcase
 

@@ -15,7 +15,7 @@ module stage_d(
 
   /* control outputs */
   output logic RegWriteD, MemWriteD, BranchD, ALUSrcD,
-  output logic [2:0] ALUControlD,
+  output logic [3:0] ALUControlD,
   output logic PCSrcD, // ARM only
   output logic [1:0] FlagWriteD, // ARM only
   output logic [3:0] CondD, // ARM only

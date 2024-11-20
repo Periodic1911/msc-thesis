@@ -3,7 +3,7 @@ module combi_decoder(input logic [31:0] instr,
                      input logic wasNotFlushed,
                      output logic RegWriteD,
                      output logic MemWriteD,
-                     output logic [2:0] ALUControlD,
+                     output logic [3:0] ALUControlD,
                      output logic BranchD,
                      output logic ALUSrcD,
                      output logic [2:0] ImmSrcD,
@@ -30,7 +30,7 @@ logic armD;
 logic opb5, funct7b5;
 logic [2:0] funct3;
 logic [1:0] ALUOp;
-logic [2:0] RV_ALUControl;
+logic [3:0] RV_ALUControl;
 logic [6:0] RV_op;
 logic [1:0] ResultSrc;
 logic RV_MemWrite, RV_Branch, RV_ALUSrc, RV_RegWrite, Jump;
@@ -75,7 +75,7 @@ always_comb
     /* Shared */
     RegWriteD = ARM_RegWrite;
     MemWriteD = ARM_MemWrite;
-    ALUControlD = {1'bx, ARM_ALUControl};
+    ALUControlD = {2'bxx, ARM_ALUControl};
     BranchD = ARM_Branch;
     ALUSrcD = ARM_ALUSrc;
     ImmSrcD[1:0] = ARM_ImmSrc;
@@ -123,7 +123,7 @@ module rv_aludec(input logic opb5,
                  input logic funct7b5,
                  input logic [1:0] ALUOp,
                  output logic RV_ALUValid, // combi only
-                 output logic [2:0] ALUControl);
+                 output logic [3:0] ALUControl);
 
 logic RtypeSub;
 assign RtypeSub = funct7b5 & opb5; // TRUE for R–type subtract
@@ -131,18 +131,19 @@ assign RtypeSub = funct7b5 & opb5; // TRUE for R–type subtract
 always_comb begin
   RV_ALUValid = 1; // combi only
   case(ALUOp)
-    2'b00: ALUControl = 3'b000; // addition
-    2'b01: ALUControl = 3'b001; // subtraction
+    2'b00: ALUControl = 4'b0000; // addition
+    2'b01: ALUControl = 4'b0001; // subtraction
     default: case(funct3) // R–type or I–type ALU
       3'b000: if (RtypeSub)
-                ALUControl = 3'b001; // sub
+                ALUControl = 4'b0001; // sub
               else
-                ALUControl = 3'b000; // add, addi
-      3'b010:  ALUControl = 3'b101; // slt, slti
-      3'b110:  ALUControl = 3'b011; // or, ori
-      3'b111:  ALUControl = 3'b010; // and, andi
+                ALUControl = 4'b0000; // add, addi
+      3'b010:  ALUControl = 4'b0101; // slt, slti
+      3'b110:  ALUControl = 4'b0011; // or, ori
+      3'b100:  ALUControl = 4'b0011; // or, ori
+      3'b111:  ALUControl = 4'b0010; // and, andi
       default: begin
-        ALUControl = 3'bxxx; // ???
+        ALUControl = 4'bxxxx; // ???
         RV_ALUValid = 0; // combi only
       end
     endcase

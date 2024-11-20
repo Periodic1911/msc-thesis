@@ -14,7 +14,7 @@ module stage_e(
 
   /* control inputs */
   input logic RegWriteD, MemWriteD, BranchD, ALUSrcD,
-  input logic [2:0] ALUControlD,
+  input logic [3:0] ALUControlD,
   input logic PCSrcD, // ARM only
   input logic [1:0] FlagWriteD, // ARM only
   input logic [3:0] CondD, // ARM only
@@ -42,7 +42,7 @@ logic [31:0] Rd1E, Rd2E;
 logic [31:0] immextE;
 logic [31:0] PCE; // RISC-V only
 logic RegWrite, MemWrite, BranchE, ALUSrcE;
-logic [2:0] ALUControlE;
+logic [3:0] ALUControlE;
 logic PCSrc; // ARM only
 logic [1:0] FlagWriteE; // ARM only
 logic [3:0] CondE; // ARM only
@@ -70,7 +70,7 @@ mux2 #(32)immMux2(WriteDataE, immextE, ALUSrcE, Op2E);
 
 assign PCTargetE = PCE + immextE;
 
-flopr #(196) de_stage(clk, (rst | FlushE),
+flopr #(197) de_stage(clk, (rst | FlushE),
   {
   Rd1D, Rd2D, RdD, immextD,
   PCD, PCPlus4D, // RISC-V only

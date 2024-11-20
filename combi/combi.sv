@@ -23,7 +23,7 @@ logic armD;
 
 /* control outputs */
 logic RegWriteD, MemWriteD, BranchD, ALUSrcD;
-logic [2:0] ALUControlD;
+logic [3:0] ALUControlD;
 logic PCSrcD; // ARM only
 logic [1:0] FlagWriteD; // ARM only
 logic [3:0] CondD; // ARM only

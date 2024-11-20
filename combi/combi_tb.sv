@@ -23,7 +23,7 @@ end
 // check results
 always @(negedge clk) begin
   if(MemWrite) begin
-    if(DataAdr === 192 & WriteData === 25) begin
+    if(DataAdr === 100 & WriteData === 25) begin
       $display("RISCV Simulation succeeded");
       #40 $exit;
     end else if(DataAdr === 100 & WriteData === 7) begin

@@ -1,7 +1,6 @@
 module combi_decoder(input logic [31:0] instr,
                      input logic armIn,
                      input logic wasNotFlushed,
-                     output logic armD,
                      output logic RegWriteD,
                      output logic MemWriteD,
                      output logic [2:0] ALUControlD,
@@ -15,8 +14,17 @@ module combi_decoder(input logic [31:0] instr,
                      output logic [1:0] RegSrcD,
 
                      output logic [1:0] ResultSrcD, // bit 1 RISC-V only
+`ifdef ARM `ifdef RISCV
+                     output logic armD,
+`endif `endif
                      output logic JumpD // RISC-V only
                      );
+`ifndef ARM
+logic armD;
+`endif
+`ifndef RISCV
+logic armD;
+`endif
 
 /* RISC-V */
 logic opb5, funct7b5;

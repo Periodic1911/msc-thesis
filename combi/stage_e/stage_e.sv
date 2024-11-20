@@ -70,7 +70,7 @@ mux2 #(32)immMux2(WriteDataE, immextE, ALUSrcE, Op2E);
 
 assign PCTargetE = PCE + immextE;
 
-flopr #(197) de_stage(clk, (rst | FlushE),
+flopr #(196) de_stage(clk, (rst | FlushE),
   {
   Rd1D, Rd2D, RdD, immextD,
   PCD, PCPlus4D, // RISC-V only
@@ -83,8 +83,7 @@ flopr #(197) de_stage(clk, (rst | FlushE),
   CondD, // ARM only
   FlagsD, // ARM only
   ResultSrcD, // bit 1 RISC-V only
-  JumpD, // RISC-V only
-  armD // combi only
+  JumpD // RISC-V only
   },
   {
   Rd1E, Rd2E, RdE, immextE,
@@ -98,9 +97,22 @@ flopr #(197) de_stage(clk, (rst | FlushE),
   CondE, // ARM only
   FlagsE, // ARM only
   ResultSrcE, // bit 1 RISC-V only
-  JumpE, // RISC-V only
-  armE // combi only
+  JumpE // RISC-V only
   }
 );
+
+`ifdef RISCV `ifdef ARM
+flopr #(1) de_stage_armbit(clk, (rst | FlushE),
+  armD,
+  armE
+);
+
+`endif `endif
+`ifdef ARM `ifndef RISCV
+assign armE = 1;
+`endif `endif
+`ifdef RISCV `ifndef ARM
+assign armE = 0;
+`endif `endif
 
 endmodule

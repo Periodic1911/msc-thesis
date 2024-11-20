@@ -27,15 +27,14 @@ module stage_m (
 logic [31:0] WriteDataM;
 logic MemWriteM;
 
-flopr #(107) em_stage(clk, rst,
+flopr #(106) em_stage(clk, rst,
   { ALUResultE, WriteDataE,
    PCPlus4E, // RV only
    RdE,
    PCSrcE, // ARM only
    RegWriteE,
    ResultSrcE,
-   MemWriteE,
-   armE
+   MemWriteE
    },
   { ALUResultM, WriteDataM,
    PCPlus4M, // RV only
@@ -43,10 +42,23 @@ flopr #(107) em_stage(clk, rst,
    PCSrcM, // ARM only
    RegWriteM,
    ResultSrcM,
-   MemWriteM,
-   armM
+   MemWriteM
    }
-   );
+ );
+
+`ifdef RISCV `ifdef ARM
+flopr #(1) de_stage_armbit(clk, rst,
+  armE,
+  armM
+);
+
+`endif `endif
+`ifdef ARM `ifndef RISCV
+assign armM = 1;
+`endif `endif
+`ifdef RISCV `ifndef ARM
+assign armM = 0;
+`endif `endif
 
 ram #(13)datamem(clk, rst, MemWriteM, ALUResultM[14:2], WriteDataM, ReadDataW);
 

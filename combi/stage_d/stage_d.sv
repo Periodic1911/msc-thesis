@@ -36,17 +36,19 @@ flopenr #(1) fd_stage_armbit(clk, rst, ~StallD,
 );
 
 flopenr #(1) fd_stage_wasFlushed(clk, (rst | FlushD), ~StallD,
-  1,
+  1'b1,
   wasNotFlushed
 );
 `endif `endif
 `ifdef ARM `ifndef RISCV
 logic armIn = 1;
-armD = 1;
+logic wasNotFlushed = 1;
+assign armD = 1;
 `endif `endif
 `ifdef RISCV `ifndef ARM
 logic armIn = 0;
-armD = 0;
+logic wasNotFlushed = 1;
+assign armD = 0;
 `endif `endif
 
 

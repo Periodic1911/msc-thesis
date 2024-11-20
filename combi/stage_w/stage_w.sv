@@ -21,14 +21,13 @@ logic [1:0] ResultSrcW;
 logic [31:0] PCPlus4W; // RV only
 logic [31:0] ALUResultW;
 
-flopr #(74) em_stage(clk, rst,
+flopr #(73) em_stage(clk, rst,
   {
    ALUResultM,
    PCPlus4M, // RV only
    RdM,
    PCSrcM, // ARM only
    RegWriteM,
-   armM,
    ResultSrcM // bit 1 RV only
   },
   {
@@ -37,10 +36,24 @@ flopr #(74) em_stage(clk, rst,
    RdW,
    PCSrcW, // ARM only
    RegWriteW,
-   armW,
    ResultSrcW // bit 1 RV only
   }
   );
+
+`ifdef RISCV `ifdef ARM
+flopr #(1) de_stage_armbit(clk, rst,
+  armM,
+  armW
+);
+
+`endif `endif
+`ifdef ARM `ifndef RISCV
+assign armW = 1;
+`endif `endif
+`ifdef RISCV `ifndef ARM
+assign armW = 0;
+`endif `endif
+
 
 // PCPlus4W is RV only
 mux3 #(32)result_mux(ALUResultW, ReadDataW, PCPlus4W,

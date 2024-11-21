@@ -1,11 +1,11 @@
 #alu ops
 
-[] add
-[] sub
+[x] add
+[x] sub
 [x] xor
-[] or
+[x] or
 
-[] and
+[x] and
 [] lsl
 [] lsr
 [] asr

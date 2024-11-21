@@ -13,6 +13,10 @@ add_sub as(.a(Op1E), .b(Op2E), .q(addResult), .add(~ALUControlE[0]), .cOut(carry
   .overflow(overflow) // ARM only
   );
 
+logic [31:0] shiftResult;
+
+barrel_shift bs(Op1E, Op2E[4:0], shiftOp, shiftResult);
+
 always_comb
   case(ALUControlE)
     4'b0000: ALUResultE = addResult; // add

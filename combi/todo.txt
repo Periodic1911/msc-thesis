@@ -6,9 +6,9 @@
 [x] or
 
 [x] and
-[] lsl
-[] lsr
-[] asr
+[x] lsl
+[x] lsr
+[x] asr
 
 [] slt
 [] sltu

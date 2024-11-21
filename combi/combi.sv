@@ -28,6 +28,7 @@ logic PCSrcD; // ARM only
 logic [1:0] FlagWriteD; // ARM only
 logic [3:0] CondD; // ARM only
 logic [1:0] ResultSrcD; // bit 1 RISC-V only
+logic PCResD; // RISC-V only
 logic JumpD; // RISC-V only
 
 /* execute */

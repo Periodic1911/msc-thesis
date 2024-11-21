@@ -31,6 +31,7 @@ module stage_e(
   output logic armE, // combi only
 
   input logic [31:0] ALUResultM, ResultW,
+  input logic PCResD,
 
   /* hazard unit */
   input logic FlushE,
@@ -68,9 +69,13 @@ mux3 #(32)forwardMux1(Rd1E, ResultW, ALUResultM, ForwardAE, Op1E);
 mux3 #(32)forwardMux2(Rd2E, ResultW, ALUResultM, ForwardBE, WriteDataE);
 mux2 #(32)immMux2(WriteDataE, immextE, ALUSrcE, Op2E);
 
+logic [31:0] PCPlus4;
+logic PCResE;
+mux2 #(32)PCmux(PCPlus4, PCTargetE, PCResE, PCPlus4E);
+
 assign PCTargetE = PCE + immextE;
 
-flopr #(197) de_stage(clk, (rst | FlushE),
+flopr #(198) de_stage(clk, (rst | FlushE),
   {
   Rd1D, Rd2D, RdD, immextD,
   PCD, PCPlus4D, // RISC-V only
@@ -83,11 +88,12 @@ flopr #(197) de_stage(clk, (rst | FlushE),
   CondD, // ARM only
   FlagsD, // ARM only
   ResultSrcD, // bit 1 RISC-V only
+  PCResD, // RISC-V only
   JumpD // RISC-V only
   },
   {
   Rd1E, Rd2E, RdE, immextE,
-  PCE, PCPlus4E, // RISC-V only
+  PCE, PCPlus4, // RISC-V only
   Rs1E, Rs2E, // RISC-V only
   /* control inputs */
   RegWrite, MemWrite, BranchE, ALUSrcE,
@@ -97,6 +103,7 @@ flopr #(197) de_stage(clk, (rst | FlushE),
   CondE, // ARM only
   FlagsE, // ARM only
   ResultSrcE, // bit 1 RISC-V only
+  PCResE, // RISC-V only
   JumpE // RISC-V only
   }
 );

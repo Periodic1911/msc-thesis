@@ -12,7 +12,7 @@
 
 [x] slt
 [x] sltu
-[] immfwd
+[x] immfwd
 
 #mem ops
 [] byte

@@ -10,12 +10,15 @@ module alu(
 logic [31:0] addResult;
 
 add_sub as(.a(Op1E), .b(Op2E), .q(addResult), .add(~ALUControlE[0]), .cOut(carry),
-  .overflow(overflow) // ARM only
+  .overflow(overflow)
   );
 
 logic [31:0] shiftResult;
+logic [1:0] shiftOp = ALUControlE[1:0];
 
 barrel_shift bs(Op1E, Op2E[4:0], shiftOp, shiftResult);
+
+logic rv_ge = (addResult[31] == overflow);
 
 always_comb
   case(ALUControlE)
@@ -25,7 +28,12 @@ always_comb
     4'b0011: ALUResultE = Op1E | Op2E; // or
     4'b0100: ALUResultE = Op1E ^ Op2E; // xor
     // RISC-V only
-    4'b0101: ALUResultE = (Op1E < Op2E) ? 32'b1 : 32'b0; // slt TODO: reuse add_sub carry chain?
+    4'b0101: ALUResultE = {31'b0, ~rv_ge}; // slt
+    4'b0111: ALUResultE = {31'b0, carry}; // sltu
+    4'b0110: ALUResultE = Op2E; // forward immediate
+    4'b1000: ALUResultE = shiftResult; // sll
+    4'b1001: ALUResultE = shiftResult; // srl
+    4'b1010: ALUResultE = shiftResult; // sra
     default: ALUResultE = 32'hxxxxxxxx; /// ???
   endcase
 

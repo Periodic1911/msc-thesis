@@ -10,8 +10,8 @@
 [x] lsr
 [x] asr
 
-[] slt
-[] sltu
+[x] slt
+[x] sltu
 [] immfwd
 
 #mem ops

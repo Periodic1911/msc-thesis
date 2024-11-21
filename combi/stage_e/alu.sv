@@ -74,23 +74,33 @@ logic signExt;
 assign signExt = (op == 2'b10) ? a[31] : 1'b0;
 logic rot = (op == 2'b11);
 
-logic [31:0] rshift_stage [4:0];
-logic [15:0] rs16;
-mux2 #(16) brs16 ({16{signExt}}, a[15:0], rot, rs16);
-mux2 #(32) brshift16 (a, {rs16, a[31:16]}, shift[4], rshift_stage[4]);
-logic [7:0] rs8;
-mux2 #(8)  brs8 ({8{signExt}}, rshift_stage[4][7:0], rot, rs8);
-mux2 #(32) brshift8 (rshift_stage[4], {rs8, rshift_stage[4][31:8]}, shift[3], rshift_stage[3]);
-logic [3:0] rs4;
-mux2 #(4)  brs4 ({4{signExt}}, rshift_stage[3][3:0], rot, rs4);
-mux2 #(32) brshift4 (rshift_stage[3], {rs4, rshift_stage[3][31:4]}, shift[2], rshift_stage[2]);
-logic [1:0] rs2;
-mux2 #(2)  brs2 ({2{signExt}}, rshift_stage[2][1:0], rot, rs2);
-mux2 #(32) brshift2 (rshift_stage[2], {rs2, rshift_stage[2][31:2]}, shift[1], rshift_stage[1]);
-logic rs1;
-mux2 #(1)  brs1 (signExt, rshift_stage[1][0], rot, rs1);
-mux2 #(32) brshift1 (rshift_stage[1], {rs1, rshift_stage[1][31:1]}, shift[0], rshift_stage[0]);
+logic [31:0] arshift_stage [4:0];
+mux2 #(32) barshift16 (a, {{16{signExt}}, a[31:16]}, shift[4], arshift_stage[4]);
+mux2 #(32) barshift8 (arshift_stage[4], {{8{signExt}}, arshift_stage[4][31:8]}, shift[3], arshift_stage[3]);
+mux2 #(32) barshift4 (arshift_stage[3], {{4{signExt}}, arshift_stage[3][31:4]}, shift[2], arshift_stage[2]);
+mux2 #(32) barshift2 (arshift_stage[2], {{2{signExt}}, arshift_stage[2][31:2]}, shift[1], arshift_stage[1]);
+mux2 #(32) barshift1 (arshift_stage[1], {signExt, arshift_stage[1][31:1]}, shift[0], arshift_stage[0]);
 
-assign q = rshift_stage[0];
+logic [31:0] ror_stage [4:0];
+mux2 #(32) bror16 (a, {a[15:0], a[31:16]}, shift[4], ror_stage[4]);
+mux2 #(32) bror8 (ror_stage[4], {ror_stage[4][7:0], ror_stage[4][31:8]}, shift[3], ror_stage[3]);
+mux2 #(32) bror4 (ror_stage[3], {ror_stage[3][3:0], ror_stage[3][31:4]}, shift[2], ror_stage[2]);
+mux2 #(32) bror2 (ror_stage[2], {ror_stage[2][1:0], ror_stage[2][31:2]}, shift[1], ror_stage[1]);
+mux2 #(32) bror1 (ror_stage[1], {ror_stage[1][0], ror_stage[1][31:1]}, shift[0], ror_stage[0]);
+
+logic [31:0] lshift_stage [4:0];
+mux2 #(32) blshift16 (a, {a[15:0], 16'b0}, shift[4], lshift_stage[4]);
+mux2 #(32) blshift8 (lshift_stage[4], {lshift_stage[4][23:0], 8'b0}, shift[3], lshift_stage[3]);
+mux2 #(32) blshift4 (lshift_stage[3], {lshift_stage[3][27:0], 4'b0}, shift[2], lshift_stage[2]);
+mux2 #(32) blshift2 (lshift_stage[2], {lshift_stage[2][29:0], 2'b0}, shift[1], lshift_stage[1]);
+mux2 #(32) blshift1 (lshift_stage[1], {lshift_stage[1][30:0], 1'b0}, shift[0], lshift_stage[0]);
+
+always_comb
+  case(op)
+    2'b00: q = lshift_stage[0];
+    2'b01: q = arshift_stage[0];
+    2'b10: q = arshift_stage[0];
+    2'b11: q = ror_stage[0];
+  endcase
 
 endmodule

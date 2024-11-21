@@ -57,3 +57,40 @@ assign overflow = (~q[31] & a[31] & b_inv[31]) |
                   ( q[31] &~a[31] &~b_inv[31]);
 
 endmodule
+
+/* Barrel shifter with support for
+* - 00 logical left shift
+* - 10/01 arithmetic/logical right shift
+* - 11 rotate right
+*/
+module barrel_shift(
+  input logic [31:0] a,
+  input logic [4:0] shift,
+  input logic [1:0] op,
+  output logic [31:0] q
+);
+
+logic signExt;
+assign signExt = (op == 2'b10) ? a[31] : 1'b0;
+logic rot = (op == 2'b11);
+
+logic [31:0] rshift_stage [4:0];
+logic [15:0] rs16;
+mux2 #(16) brs16 ({16{signExt}}, a[15:0], rot, rs16);
+mux2 #(32) brshift16 (a, {rs16, a[31:16]}, shift[4], rshift_stage[4]);
+logic [7:0] rs8;
+mux2 #(8)  brs8 ({8{signExt}}, rshift_stage[4][7:0], rot, rs8);
+mux2 #(32) brshift8 (rshift_stage[4], {rs8, rshift_stage[4][31:8]}, shift[3], rshift_stage[3]);
+logic [3:0] rs4;
+mux2 #(4)  brs4 ({4{signExt}}, rshift_stage[3][3:0], rot, rs4);
+mux2 #(32) brshift4 (rshift_stage[3], {rs4, rshift_stage[3][31:4]}, shift[2], rshift_stage[2]);
+logic [1:0] rs2;
+mux2 #(2)  brs2 ({2{signExt}}, rshift_stage[2][1:0], rot, rs2);
+mux2 #(32) brshift2 (rshift_stage[2], {rs2, rshift_stage[2][31:2]}, shift[1], rshift_stage[1]);
+logic rs1;
+mux2 #(1)  brs1 (signExt, rshift_stage[1][0], rot, rs1);
+mux2 #(32) brshift1 (rshift_stage[1], {rs1, rshift_stage[1][31:1]}, shift[0], rshift_stage[0]);
+
+assign q = rshift_stage[0];
+
+endmodule

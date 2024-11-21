@@ -26,6 +26,8 @@ module stage_m (
 
 logic [31:0] WriteDataM;
 logic MemWriteM;
+logic [1:0] MemSizeM;
+logic MemSignedM;
 
 flopr #(106) em_stage(clk, rst,
   { ALUResultE, WriteDataE,
@@ -60,7 +62,7 @@ assign armM = 1;
 assign armM = 0;
 `endif `endif
 
-ram #(13)datamem(clk, rst, MemWriteM, ALUResultM[14:2], WriteDataM, ReadDataW);
+ram #(13)datamem(clk, rst, MemWriteM, MemSizeM, MemSingedM, ALUResultM[14:2], WriteDataM, ReadDataW);
 
 assign WriteData = WriteDataM;
 assign DataAddr = ALUResultM;

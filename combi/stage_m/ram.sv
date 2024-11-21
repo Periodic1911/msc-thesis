@@ -1,13 +1,13 @@
 /* Read-Write Memory block */
-module ram #(parameter SIZE_LOG2=13)
+module ram #(parameter SIZE_LOG2=13, parameter WIDTH=32)
             (input clk, rst,
              input WE,
              input [SIZE_LOG2-1:0] A,
-             input [31:0] WD,
-             output [31:0] RD);
+             input [WIDTH-1:0] WD,
+             output [WIDTH-1:0] RD);
 
-  logic [31:0] mem_ff [2**SIZE_LOG2-1:0];
-  logic [31:0] read;
+  logic [WIDTH-1:0] mem_ff [2**SIZE_LOG2-1:0];
+  logic [WIDTH-1:0] read;
 
   assign RD = read;
 

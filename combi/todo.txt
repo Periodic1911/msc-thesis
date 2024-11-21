@@ -2,7 +2,7 @@
 
 [] add
 [] sub
-[] xor
+[x] xor
 [] or
 
 [] and

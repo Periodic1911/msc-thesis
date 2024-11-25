@@ -49,6 +49,20 @@ initial begin
   MemSize = 1;
   #10
   MemSize = 2;
+  #10
+  WE = 1;
+  MemSize = 0;
+  WD = 32'hFFFFFFFF;
+  #10
+  MemSize = 2;
+  WE = 0;
+  #10
+  WE = 1;
+  MemSize = 1;
+  WD = 32'hAAAAAAAA;
+  #10
+  MemSize = 2;
+  WE = 0;
   #10 $exit;
 end
 

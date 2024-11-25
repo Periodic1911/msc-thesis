@@ -12,8 +12,29 @@ module memory #(parameter SIZE_LOG2=13)
              input [31:0] WD,
              output [31:0] RD);
 
+/* write byte, halfword */
+logic [3:0] writeBytes;
+always_comb write_bytes: begin
+  if(WE == 0) writeBytes = 4'b0;
+  else
+    case(MemSize)
+      2'b00: writeBytes = 4'b0001;
+      2'b01: writeBytes = 4'b0011;
+      2'b10: writeBytes = 4'b1111;
+      2'b11: writeBytes = 4'bx;
+    endcase;
+end
 
-/* read and sign extend */
+logic [3:0] writeEn;
+always_comb write_en:
+  case(A[1:0])
+    2'b00: {writeEn[3],writeEn[2],writeEn[1],writeEn[0]} = writeBytes;
+    2'b01: {writeEn[0],writeEn[3],writeEn[2],writeEn[1]} = writeBytes;
+    2'b10: {writeEn[1],writeEn[0],writeEn[3],writeEn[2]} = writeBytes;
+    2'b11: {writeEn[1],writeEn[2],writeEn[0],writeEn[3]} = writeBytes;
+  endcase
+
+/* read byte, halfword and sign extend */
 logic [31:0] read_se;
 assign RD = read_se;
 always_comb read_signext:
@@ -63,9 +84,9 @@ always_comb addr_align:
   endcase
 
 /* ram blocks */
-ram #(SIZE_LOG2-2, 8) ram00 (clk, rst, WE, addrAlign[0], wBytes[0], rBytes[0]);
-ram #(SIZE_LOG2-2, 8) ram01 (clk, rst, WE, addrAlign[1], wBytes[1], rBytes[1]);
-ram #(SIZE_LOG2-2, 8) ram10 (clk, rst, WE, addrAlign[2], wBytes[2], rBytes[2]);
-ram #(SIZE_LOG2-2, 8) ram11 (clk, rst, WE, addrAlign[3], wBytes[3], rBytes[3]);
+ram #(SIZE_LOG2-2, 8) ram00 (clk, rst, writeEn[0], addrAlign[0], wBytes[0], rBytes[0]);
+ram #(SIZE_LOG2-2, 8) ram01 (clk, rst, writeEn[1], addrAlign[1], wBytes[1], rBytes[1]);
+ram #(SIZE_LOG2-2, 8) ram10 (clk, rst, writeEn[2], addrAlign[2], wBytes[2], rBytes[2]);
+ram #(SIZE_LOG2-2, 8) ram11 (clk, rst, writeEn[3], addrAlign[3], wBytes[3], rBytes[3]);
 
 endmodule

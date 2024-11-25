@@ -12,8 +12,28 @@ module memory #(parameter SIZE_LOG2=13)
              input [31:0] WD,
              output [31:0] RD);
 
+
+/* read and sign extend */
+logic [31:0] read_se;
+assign RD = read_se;
+always_comb read_signext:
+  case(MemSize)
+    2'b00: begin
+      if(MemSigned) read_se = {{24{read[7]}},read[7:0]};
+      else read_se = {24'b0,read[7:0]};
+    end
+    2'b01: begin
+      if(MemSigned) read_se = {{16{read[15]}},read[15:0]};
+      else read_se = {16'b0,read[15:0]};
+    end
+    2'b10: read_se = read;
+    default: read_se = 32'bx;
+  endcase
+
+/* address alignment */
 logic [7:0] wBytes [3:0];
 logic [7:0] rBytes [3:0];
+logic [31:0] read;
 
 always_comb write_align:
   case(A[1:0])
@@ -23,8 +43,6 @@ always_comb write_align:
     2'b11: {wBytes[1],wBytes[2],wBytes[0],wBytes[3]} = WD;
   endcase
 
-logic [31:0] read;
-assign RD = read;
 always_comb read_align:
   case(A[1:0])
     2'b00: read = {rBytes[3],rBytes[2],rBytes[1],rBytes[0]};
@@ -44,6 +62,7 @@ always_comb addr_align:
     2'b11: addrAlign = {AA    ,APlus4,APlus4,APlus4};
   endcase
 
+/* ram blocks */
 ram #(SIZE_LOG2-2, 8) ram00 (clk, rst, WE, addrAlign[0], wBytes[0], rBytes[0]);
 ram #(SIZE_LOG2-2, 8) ram01 (clk, rst, WE, addrAlign[1], wBytes[1], rBytes[1]);
 ram #(SIZE_LOG2-2, 8) ram10 (clk, rst, WE, addrAlign[2], wBytes[2], rBytes[2]);

@@ -17,15 +17,38 @@ initial begin
   rst = 1;
   #20 rst = 0;
   A = 96;
-  WD = 32'h44332211;
+  WD = 32'hAABBCC11;
   WE = 1;
   MemSize = 2;
+  #10
+  A = 97;
+  WD = 32'h55443322;
   #10
   WD = 0;
   WE = 0;
   #10 A = 97;
   #10 A = 98;
   #10 A = 99;
+  #10 A = 96;
+  MemSigned = 0;
+  MemSize = 0;
+  #10
+  MemSize = 1;
+  #10 A = 97;
+  MemSize = 0;
+  #10
+  MemSize = 1;
+  #10 A = 100;
+  WD = 32'h40808080;
+  WE = 1;
+  #10
+  WE = 0;
+  MemSigned = 1;
+  MemSize = 0;
+  #10
+  MemSize = 1;
+  #10
+  MemSize = 2;
   #10 $exit;
 end
 

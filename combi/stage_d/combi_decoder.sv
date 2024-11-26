@@ -137,6 +137,7 @@ module rv_aludec(input logic opb5,
                  input logic [2:0] funct3,
                  input logic funct7b5,
                  input logic [1:0] ALUOp,
+                 output logic [3:0] RV_Cond,
                  output logic RV_ALUValid, // combi only
                  output logic [3:0] ALUControl);
 
@@ -171,6 +172,18 @@ always_comb begin
     endcase
   endcase
 end
+
+/* branch signals */
+always_comb
+  case(funct3)
+    3'b000: RV_Cond = 4'b0000; // beq
+    3'b001: RV_Cond = 4'b0001; // bne
+    3'b100: RV_Cond = 4'b1011; // blt
+    3'b101: RV_Cond = 4'b1010; // bge
+    3'b110: RV_Cond = 4'b0011; // bltu
+    3'b111: RV_Cond = 4'b0010; // bgeu
+    default: RV_Cond = 4'bx; // undefined
+  endcase
 
 endmodule
 
@@ -220,7 +233,7 @@ always_comb begin
         end
       endcase
     7'b0110011: controls = 16'b1_xxx_0_0_x_xx_00_0_10_0_x; // R–type
-    7'b1100011: controls = 16'b0_010_0_0_x_xx_00_1_01_0_x; // beq
+    7'b1100011: controls = 16'b0_010_0_0_x_xx_00_1_01_0_x; // B-type
     7'b0010011: controls = 16'b1_000_1_0_x_xx_00_0_10_0_x; // I–type ALU
     7'b1101111: controls = 16'b1_011_0_0_x_xx_10_0_00_1_0; // jal
 

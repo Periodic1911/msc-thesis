@@ -9,6 +9,7 @@ module combi_decoder(input logic [31:0] instr,
                      output logic BranchD,
                      output logic ALUSrcD,
                      output logic [2:0] ImmSrcD,
+                     output logic [3:0] CondD,
 
                      /* ARM only */
                      output logic PCSrcD,
@@ -41,6 +42,7 @@ logic [1:0] RV_MemSize;
 logic RV_MemSigned;
 logic [2:0] RV_ImmSrc;
 logic RV_mainValid, RV_ALUValid, RV_valid; //combi only
+logic [3:0] RV_Cond;
 
 assign {opb5, funct7b5, funct3, RV_op} = {
   instr[5],
@@ -89,6 +91,7 @@ always_comb
     ALUSrcD = ARM_ALUSrc;
     ImmSrcD[1:0] = ARM_ImmSrc;
     ResultSrcD[0] = MemtoReg;
+    CondD = instr[31:28];
 
     /* ARM Only */
     PCSrcD = PCSrc;
@@ -110,6 +113,7 @@ always_comb
     BranchD = RV_Branch;
     ALUSrcD = RV_ALUSrc;
     ImmSrcD = RV_ImmSrc;
+    CondD = RV_Cond;
 
     /* RISC-V */
     ResultSrcD = ResultSrc;

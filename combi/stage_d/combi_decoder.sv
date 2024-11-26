@@ -198,7 +198,16 @@ always_comb begin
           RV_mainValid = 0; // combi only
         end
       endcase
-    7'b0100011: controls = 16'b0_001_1_1_x_10_00_0_00_0_x; // sw
+    7'b0100011: // store
+      case(funct3)
+        3'b000: controls = 16'b0_001_1_1_x_00_00_0_00_0_x; // sb
+        3'b001: controls = 16'b0_001_1_1_x_01_00_0_00_0_x; // sh
+        3'b010: controls = 16'b0_001_1_1_x_10_00_0_00_0_x; // sw
+        default: begin
+          controls = 16'bx;
+          RV_mainValid = 0; // combi only
+        end
+      endcase
     7'b0110011: controls = 16'b1_xxx_0_0_x_xx_00_0_10_0_x; // R–type
     7'b1100011: controls = 16'b0_010_0_0_x_xx_00_1_01_0_x; // beq
     7'b0010011: controls = 16'b1_000_1_0_x_xx_00_0_10_0_x; // I–type ALU

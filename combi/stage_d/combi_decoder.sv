@@ -144,7 +144,8 @@ always_comb begin
   case(ALUOp)
     2'b00: ALUControl = 4'b0000; // addition
     2'b01: ALUControl = 4'b0001; // subtraction
-    default: case(funct3) // R–type or I–type ALU
+    2'b11: ALUControl = 4'b0110; // lui
+    2'b10: case(funct3) // R–type or I–type ALU
       3'b000: if (RtypeSub)
                 ALUControl = 4'b0001; // sub
               else
@@ -219,7 +220,7 @@ always_comb begin
     7'b0010011: controls = 16'b1_000_1_0_x_xx_00_0_10_0_x; // I–type ALU
     7'b1101111: controls = 16'b1_011_0_0_x_xx_10_0_00_1_0; // jal
 
-    7'b0110111: controls = 16'b1_111_1_0_x_xx_00_0_00_0_x; // lui
+    7'b0110111: controls = 16'b1_111_1_0_x_xx_00_0_11_0_x; // lui
     7'b0010111: controls = 16'b1_111_1_0_x_xx_10_0_00_0_1; // auipc
     default: begin
       controls = 16'b1_111_1_0_x_xx_10_0_00_0_1; // ???

@@ -73,11 +73,14 @@ mux3 #(32)forwardMux1(Rd1E, ResultW, ALUResultM, ForwardAE, Op1E);
 mux3 #(32)forwardMux2(Rd2E, ResultW, ALUResultM, ForwardBE, WriteDataE);
 mux2 #(32)immMux2(WriteDataE, immextE, ALUSrcE, Op2E);
 
+logic [31:0] PCT;
+mux2 #(32)PCTargetMux(PCE, Op1E, ALUSrcE, PCT);
+
 logic [31:0] PCPlus4;
 logic PCResE;
 mux2 #(32)PCmux(PCPlus4, PCTargetE, PCResE, PCPlus4E);
 
-assign PCTargetE = PCE + immextE;
+assign PCTargetE = PCT + immextE;
 
 flopr #(201) de_stage(clk, (rst | FlushE),
   {

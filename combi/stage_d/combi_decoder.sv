@@ -220,6 +220,7 @@ always_comb begin
     7'b0010011: controls = 16'b1_000_1_0_x_xx_00_0_10_0_x; // I–type ALU
     7'b1101111: controls = 16'b1_011_0_0_x_xx_10_0_00_1_0; // jal
 
+    7'b1100111: controls = 16'b1_000_1_0_x_xx_10_0_00_0_0; // jalr
     7'b0110111: controls = 16'b1_111_1_0_x_xx_00_0_11_0_x; // lui
     7'b0010111: controls = 16'b1_111_1_0_x_xx_10_0_00_0_1; // auipc
     default: begin

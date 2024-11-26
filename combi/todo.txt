@@ -15,12 +15,12 @@
 [x] immfwd
 
 #mem ops
-[] byte
-[] half
-[] word
+[x] byte
+[x] half
+[x] word
 
-[] sign-ext
-[] zero-ext
+[x] sign-ext
+[x] zero-ext
 
 #imm ops
 [x] imm20 << 12

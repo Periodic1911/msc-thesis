@@ -176,25 +176,25 @@ module rv_maindec(input logic [6:0] op,
 
 assign MemSigned = 0;
 assign MemSize = 2'b10;
-logic [12:0] controls;
+logic [15:0] controls;
 
-assign {RegWrite, ImmSrc, ALUSrc, MemWrite,
+assign {RegWrite, ImmSrc, ALUSrc, MemWrite, MemSigned, MemSize,
   ResultSrc, Branch, ALUOp, Jump, PCResD} = controls;
 
 always_comb begin
   RV_mainValid = 1; // combi only
   case(op)
-    // RegWrite_ImmSrc_ALUSrc_MemWrite_ResultSrc_Branch_ALUOp_Jump_PCRes
-    7'b0000011: controls = 13'b1_000_1_0_01_0_00_0_0; // lw
-    7'b0100011: controls = 13'b0_001_1_1_00_0_00_0_0; // sw
-    7'b0110011: controls = 13'b1_0xx_0_0_00_0_10_0_0; // R–type
-    7'b1100011: controls = 13'b0_010_0_0_00_1_01_0_0; // beq
-    7'b0010011: controls = 13'b1_000_1_0_00_0_10_0_0; // I–type ALU
-    7'b1101111: controls = 13'b1_011_0_0_10_0_00_1_0; // jal
-    7'b0110111: controls = 13'b1_111_1_0_00_0_00_0_0; // lui
-    7'b0010111: controls = 13'b1_111_1_0_10_0_00_0_1; // auipc
+    // RegWrite_ImmSrc_ALUSrc_MemWrite_MemSigned_MemSize_ResultSrc_Branch_ALUOp_Jump_PCRes
+    7'b0000011: controls = 16'b1_000_1_0_x_10_01_0_00_0_0; // lw
+    7'b0100011: controls = 16'b0_001_1_1_x_10_00_0_00_0_0; // sw
+    7'b0110011: controls = 16'b1_0xx_0_0_x_xx_00_0_10_0_0; // R–type
+    7'b1100011: controls = 16'b0_010_0_0_x_xx_00_1_01_0_0; // beq
+    7'b0010011: controls = 16'b1_000_1_0_x_xx_00_0_10_0_0; // I–type ALU
+    7'b1101111: controls = 16'b1_011_0_0_x_xx_10_0_00_1_0; // jal
+    7'b0110111: controls = 16'b1_111_1_0_x_xx_00_0_00_0_0; // lui
+    7'b0010111: controls = 16'b1_111_1_0_x_xx_10_0_00_0_1; // auipc
     default: begin
-      controls = 13'bx_xxx_x_x_xx_x_xx_x_x; // ???
+      controls = 16'b1_111_1_0_x_xx_10_0_00_0_1; // ???
       RV_mainValid = 0; // combi only
     end
   endcase
@@ -214,6 +214,7 @@ module arm_decoder(input logic [1:0] Op,
                    output logic MemSigned,
                    output logic [1:0] ImmSrc, RegSrc, ALUControl);
 
+// TODO add to decoder controls
 assign MemSigned = 0;
 assign MemSize = 2'b10;
 

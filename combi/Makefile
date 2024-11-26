@@ -3,6 +3,7 @@ DEPS = common/common.sv combi.sv combi_tb.sv hazard/hazard.sv \
 			 stage_d/combi_decoder.sv  stage_e/condlogic.sv   stage_f/top.sv \
        stage_d/extend.sv         stage_e/rvbranch.sv    stage_m/ram.sv \
        stage_d/regfile.sv        stage_e/stage_e.sv     stage_m/stage_m.sv \
+			 stage_m/memory.sv \
        stage_d/stage_d.sv        stage_f/mem.sv         stage_w/stage_w.sv \
        stage_e/add_sub_tb.sv     stage_f/stage_f.sv \
        stage_e/alu.sv            stage_f/stage_f_tb.sv

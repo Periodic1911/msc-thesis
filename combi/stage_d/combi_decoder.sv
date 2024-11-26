@@ -3,6 +3,8 @@ module combi_decoder(input logic [31:0] instr,
                      input logic wasNotFlushed,
                      output logic RegWriteD,
                      output logic MemWriteD,
+                     output logic [1:0] MemSizeD,
+                     output logic MemSignedD,
                      output logic [3:0] ALUControlD,
                      output logic BranchD,
                      output logic ALUSrcD,
@@ -35,6 +37,8 @@ logic [3:0] RV_ALUControl;
 logic [6:0] RV_op;
 logic [1:0] ResultSrc;
 logic RV_MemWrite, RV_Branch, RV_ALUSrc, RV_RegWrite, Jump;
+logic [1:0] RV_MemSize;
+logic RV_MemSigned;
 logic [2:0] RV_ImmSrc;
 logic RV_mainValid, RV_ALUValid, RV_valid; //combi only
 
@@ -45,7 +49,7 @@ assign {opb5, funct7b5, funct3, RV_op} = {
   instr[6:0] };
 
 rv_aludec rv_adec(.*, .ALUControl(RV_ALUControl));
-rv_maindec rv_mdec(.*, .op(RV_op), .MemWrite(RV_MemWrite), .Branch(RV_Branch), .RegWrite(RV_RegWrite), .ImmSrc(RV_ImmSrc), .ALUSrc(RV_ALUSrc) );
+rv_maindec rv_mdec(.*, .op(RV_op), .MemSigned(RV_MemSigned), .MemSize(RV_MemSize), .MemWrite(RV_MemWrite), .Branch(RV_Branch), .RegWrite(RV_RegWrite), .ImmSrc(RV_ImmSrc), .ALUSrc(RV_ALUSrc) );
 
 assign RV_valid = RV_mainValid & RV_ALUValid; // combi only
 
@@ -55,6 +59,8 @@ logic [5:0] Funct;
 logic [3:0] Rd;
 logic [1:0] FlagW;
 logic PCSrc, ARM_RegWrite, ARM_MemWrite, MemtoReg, ARM_ALUSrc, ARM_Branch;
+logic [1:0] ARM_MemSize;
+logic ARM_MemSigned;
 logic [1:0] ARM_ImmSrc, RegSrc, ARM_ALUControl;
 logic ARM_valid; // combi only
 
@@ -63,7 +69,7 @@ assign {ARM_Op, Funct, Rd} = {
   instr[25:20],
   instr[15:12] };
 
-arm_decoder arm_dec(.*, .Op(ARM_Op), .RegW(ARM_RegWrite), .MemW(ARM_MemWrite), .ALUSrc(ARM_ALUSrc), .ImmSrc(ARM_ImmSrc), .ALUControl(ARM_ALUControl), .Branch(ARM_Branch) );
+arm_decoder arm_dec(.*, .Op(ARM_Op), .RegW(ARM_RegWrite), .MemSigned(ARM_MemSigned), .MemSize(ARM_MemSize), .MemW(ARM_MemWrite), .ALUSrc(ARM_ALUSrc), .ImmSrc(ARM_ImmSrc), .ALUControl(ARM_ALUControl), .Branch(ARM_Branch) );
 
 /* Combine RISC-V and ARM */
 always_comb
@@ -76,6 +82,8 @@ always_comb
     /* Shared */
     RegWriteD = ARM_RegWrite;
     MemWriteD = ARM_MemWrite;
+    MemSizeD = ARM_MemSize;
+    MemSignedD = ARM_MemSigned;
     ALUControlD = {2'bxx, ARM_ALUControl};
     BranchD = ARM_Branch;
     ALUSrcD = ARM_ALUSrc;
@@ -96,6 +104,8 @@ always_comb
     /* Shared */
     RegWriteD = RV_RegWrite;
     MemWriteD = RV_MemWrite;
+    MemSizeD = RV_MemSize;
+    MemSignedD = RV_MemSigned;
     ALUControlD = RV_ALUControl;
     BranchD = RV_Branch;
     ALUSrcD = RV_ALUSrc;
@@ -157,11 +167,15 @@ module rv_maindec(input logic [6:0] op,
                   output logic RV_mainValid, // combi only
                   output logic [1:0] ResultSrc,
                   output logic MemWrite,
+                  output logic [1:0] MemSize,
+                  output logic MemSigned,
                   output logic Branch, ALUSrc,
                   output logic RegWrite, PCResD, Jump,
                   output logic [2:0] ImmSrc,
                   output logic [1:0] ALUOp);
 
+assign MemSigned = 0;
+assign MemSize = 2'b10;
 logic [12:0] controls;
 
 assign {RegWrite, ImmSrc, ALUSrc, MemWrite,
@@ -196,7 +210,12 @@ module arm_decoder(input logic [1:0] Op,
                    output logic [1:0] FlagW,
                    output logic PCSrc, RegW, MemW,
                    output logic MemtoReg, ALUSrc,
+                   output logic [1:0] MemSize,
+                   output logic MemSigned,
                    output logic [1:0] ImmSrc, RegSrc, ALUControl);
+
+assign MemSigned = 0;
+assign MemSize = 2'b10;
 
 logic [9:0] controls;
 logic ALUOp;

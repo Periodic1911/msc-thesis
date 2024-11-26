@@ -23,6 +23,8 @@ logic armD;
 
 /* control outputs */
 logic RegWriteD, MemWriteD, BranchD, ALUSrcD;
+logic [1:0] MemSizeD;
+logic MemSignedD;
 logic [3:0] ALUControlD;
 logic PCSrcD; // ARM only
 logic [1:0] FlagWriteD; // ARM only
@@ -39,6 +41,8 @@ logic [31:0] WriteDataE; //, ALUResultE;
 logic [1:0] ResultSrcE; // bit 1 is RISC-V only
 logic PCSrcE; // ARM only
 logic RegWriteE, MemWriteE;
+logic [1:0] MemSizeE;
+logic MemSignedE;
 
 logic BranchTakenE; // ARM only
 logic RVPCSrcE; // RISC-V only

@@ -34,11 +34,20 @@ always_comb write_en:
     2'b11: {writeEn[1],writeEn[2],writeEn[0],writeEn[3]} = writeBytes;
   endcase
 
+logic [1:0] MemSizeLD;
+logic MemSignedLD;
+logic [1:0] AddrLD;
+
+flopr #(5) mem_reg_ld(clk, rst,
+  {MemSize, MemSigned, A[1:0]},
+  {MemSizeLD, MemSignedLD, AddrLD}
+);
+
 /* read byte, halfword and sign extend */
 logic [31:0] read_se;
 assign RD = read_se;
 always_comb read_signext:
-  case(MemSize)
+  case(MemSizeLD)
     2'b00: begin
       if(MemSigned) read_se = {{24{read[7]}},read[7:0]};
       else read_se = {24'b0,read[7:0]};
@@ -65,7 +74,7 @@ always_comb write_align:
   endcase
 
 always_comb read_align:
-  case(A[1:0])
+  case(AddrLD)
     2'b00: read = {rBytes[3],rBytes[2],rBytes[1],rBytes[0]};
     2'b01: read = {rBytes[0],rBytes[3],rBytes[2],rBytes[1]};
     2'b10: read = {rBytes[1],rBytes[0],rBytes[3],rBytes[2]};

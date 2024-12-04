@@ -1,4 +1,4 @@
-`define ARM
+//`define ARM
 `define RISCV
 
 module combi (

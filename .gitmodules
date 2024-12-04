@@ -7,3 +7,6 @@
 [submodule "VexRiscv"]
 	path = VexRiscv
 	url = git@github.com:Periodic1911/VexRiscv.git
+[submodule "picorv32"]
+	path = picorv32
+	url = https://github.com/YosysHQ/picorv32

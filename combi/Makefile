@@ -48,3 +48,22 @@ program_flash: $(TOP)_flash.svf
 
 clean:
 	rm -f *.svf *.json *.bit *_out.cfg
+
+rv_tests/%.o: rv_tests/%.S rv_tests/riscv_test.h rv_tests/test_macros.h
+	riscv32-unknown-elf-as -march=rv32im -o $@ $<
+	#clang -c --target=riscv32 -march=rv32im -o $@ -DTEST_FUNC_NAME=$(notdir $(basename $<)) \
+		#-DTEST_FUNC_TXT='"$(notdir $(basename $<))"' -DTEST_FUNC_RET=$(notdir $(basename $<))_ret $<
+
+%.hex: rv_tests/%.o
+	riscv32-elf-ld -T rv.ld $< -o program.elf
+	llvm-objcopy program.elf --output-target binary program.bin
+	xxd -ps -c4 program.bin > program.hex.be
+	cut -b 1-2 program.hex.be > program.hex.1
+	cut -b 3-4 program.hex.be > program.hex.2
+	cut -b 5-6 program.hex.be > program.hex.3
+	cut -b 7-8 program.hex.be > program.hex.4
+	paste program.hex.4 program.hex.3 program.hex.2 program.hex.1 | tr -d '\n\t' | fold -w 8 > $@
+	cp $@ stage_f/program_rv.hex
+
+dass: program.elf
+	llvm-objdump -d $< | less

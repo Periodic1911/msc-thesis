@@ -97,5 +97,9 @@ ram #(SIZE_LOG2-2, 8) ram00 (clk, rst, writeEn[0], addrAlign[0], wBytes[0], rByt
 ram #(SIZE_LOG2-2, 8) ram01 (clk, rst, writeEn[1], addrAlign[1], wBytes[1], rBytes[1]);
 ram #(SIZE_LOG2-2, 8) ram10 (clk, rst, writeEn[2], addrAlign[2], wBytes[2], rBytes[2]);
 ram #(SIZE_LOG2-2, 8) ram11 (clk, rst, writeEn[3], addrAlign[3], wBytes[3], rBytes[3]);
+initial begin $readmemh("program.hex.1", ram00.mem_ff); end
+initial begin $readmemh("program.hex.2", ram01.mem_ff); end
+initial begin $readmemh("program.hex.3", ram10.mem_ff); end
+initial begin $readmemh("program.hex.4", ram11.mem_ff); end
 
 endmodule

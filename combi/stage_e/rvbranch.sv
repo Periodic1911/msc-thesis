@@ -15,8 +15,8 @@ always_comb
   case(CondE)
     4'b0000: BranchTaken = zero; // EQ
     4'b0001: BranchTaken = ~zero; // NE
-    4'b0010: BranchTaken = carry; // CS
-    4'b0011: BranchTaken = ~carry; // CC
+    4'b0010: BranchTaken = ~carry; // CC
+    4'b0011: BranchTaken = carry; // CS
     4'b1010: BranchTaken = ge; // GE
     4'b1011: BranchTaken = ~ge; // LT
     default: BranchTaken = 1'bx; // undefined

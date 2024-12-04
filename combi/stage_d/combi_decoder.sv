@@ -239,7 +239,7 @@ always_comb begin
 
     7'b1100111: controls = 16'b1_000_1_0_x_xx_10_0_00_1_0; // jalr
     7'b0110111: controls = 16'b1_111_1_0_x_xx_00_0_11_0_x; // lui
-    7'b0010111: controls = 16'b1_111_1_0_x_xx_10_0_00_0_1; // auipc
+    7'b0010111: controls = 16'b1_111_0_0_x_xx_10_0_00_0_1; // auipc
     default: begin
       controls = 16'b1_111_1_0_x_xx_10_0_00_0_1; // ???
       RV_mainValid = 0; // combi only

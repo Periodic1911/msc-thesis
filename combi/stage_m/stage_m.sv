@@ -68,7 +68,7 @@ assign armM = 1;
 assign armM = 0;
 `endif `endif
 
-memory #(13)datamem(clk, rst, MemWriteM, MemSizeM, MemSignedM, ALUResultM[14:2], WriteDataM, ReadDataW);
+memory #(13)datamem(clk, rst, MemWriteM, MemSizeM, MemSignedM, ALUResultM[12:0], WriteDataM, ReadDataW);
 //ram #(13)datamem(clk, rst, MemWriteM, ALUResultM[14:2], WriteDataM, ReadDataW);
 
 assign WriteData = WriteDataM;

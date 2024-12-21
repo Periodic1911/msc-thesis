@@ -31,7 +31,7 @@ linkaddr_2:
   j fail
 
 target_2:
-  la  x2, linkaddr_2
+  li  x2, 0x34
   addi x2, x2, 4
   bne x2, ra, fail
 

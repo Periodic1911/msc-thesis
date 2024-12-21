@@ -22,7 +22,7 @@ RVTEST_CODE_BEGIN
 test_2:
   li  TESTNUM, 2
   li  x31, 0
-  la  x2, target_2
+  la  x2, 0x4c
 
 linkaddr_2:
   jalr x19, x2, 0

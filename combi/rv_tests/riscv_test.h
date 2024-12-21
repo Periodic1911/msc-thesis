@@ -55,7 +55,8 @@ TEST_FUNC_NAME:				\
 	sw	a3,0(a0);		\
 	sw	a2,0(a0);		\
 	sw	a4,0(a0);		\
-	ebreak;
+RVTEST_FAIL_LOOP: \
+	jal zero, RVTEST_FAIL_LOOP;
 
 #define RVTEST_CODE_END \
 TEST_FUNC_RET: \

@@ -41,7 +41,7 @@ auipc_label:
   auipc x2, 56           # x2 = 56 << 12 + pc
   srli  x5, x2, 12       # x5 = x2 >> 12 = 56
   andi  x2, x2, 2047     # x2 = x2 & 0x7FF = 0x88:
-  jal   x7, jal_skip     # x7 = 0x9C
+  jal   x7, jal_skip     # x7 = 0x98
   addi  x3, x0, 0;       # shouldn't execute
 jal_skip:
   sub   x2, x2, x7       # x2 = 0x88 - 0x98 = -16

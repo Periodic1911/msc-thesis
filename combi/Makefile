@@ -69,7 +69,7 @@ rv_tests/%.o: rv_tests/%.S rv_tests/riscv_test.h rv_tests/test_macros.h
 	rm dump.vcd
 	make dump.vcd > logs/$(basename $@).log
 	mv dump.vcd dumps/$(basename $@).vcd
-	grep 'Simulation succeeded' logs/$(basename $@).log
+	grep 'RISCV Simulation succeeded' logs/$(basename $@).log
 
 dass: program.elf
-	llvm-objdump -d $< | less
+	llvm-objdump -d -M numeric $< | less

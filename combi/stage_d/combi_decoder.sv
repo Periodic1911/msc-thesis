@@ -7,7 +7,7 @@ module combi_decoder(input logic [31:0] instr,
                      output logic MemSignedD,
                      output logic [3:0] ALUControlD,
                      output logic [1:0] BranchD, // bit 0 RISC-V only
-                     output logic ALUSrcD,
+                     output logic [1:0] ALUSrcD,
                      output logic [2:0] ImmSrcD,
                      output logic [3:0] CondD,
 
@@ -35,7 +35,8 @@ logic [1:0] ALUOp;
 logic [3:0] RV_ALUControl;
 logic [6:0] RV_op;
 logic [1:0] ResultSrc;
-logic RV_MemWrite, RV_ALUSrc, RV_RegWrite;
+logic RV_MemWrite, RV_RegWrite;
+logic [1:0] RV_ALUSrc;
 logic [1:0] RV_Branch;
 logic [1:0] RV_MemSize;
 logic RV_MemSigned;
@@ -86,7 +87,7 @@ always_comb
     MemSignedD = ARM_MemSigned;
     ALUControlD = {2'bxx, ARM_ALUControl};
     BranchD = {ARM_Branch, 1'b0};
-    ALUSrcD = ARM_ALUSrc;
+    ALUSrcD = {1'b0, ARM_ALUSrc};
     ImmSrcD[1:0] = ARM_ImmSrc;
     ResultSrcD[0] = MemtoReg;
     CondD = instr[31:28];
@@ -195,14 +196,14 @@ module rv_maindec(input logic [6:0] op,
                   output logic [1:0] MemSize,
                   output logic MemSigned,
                   output logic [1:0] Branch,
-                  output logic ALUSrc,
+                  output logic [1:0] ALUSrc,
                   output logic RegWrite,
                   output logic [2:0] ImmSrc,
                   output logic [1:0] ALUOp);
 
 assign MemSigned = 0;
 assign MemSize = 2'b10;
-logic [14:0] controls;
+logic [15:0] controls;
 
 assign {RegWrite, ImmSrc, ALUSrc, MemWrite, MemSigned, MemSize,
   ResultSrc, Branch, ALUOp} = controls;
@@ -213,36 +214,36 @@ always_comb begin
     // RegWrite_ImmSrc_ALUSrc_MemWrite_MemSigned_MemSize_ResultSrc_Branch_ALUOp
     7'b0000011: // load
       case(funct3)
-        3'b000: controls = 15'b1_000_1_0_1_00_01_00_00; // lb
-        3'b001: controls = 15'b1_000_1_0_1_01_01_00_00; // lh
-        3'b010: controls = 15'b1_000_1_0_x_10_01_00_00; // lw
-        3'b100: controls = 15'b1_000_1_0_0_00_01_00_00; // lbu
-        3'b101: controls = 15'b1_000_1_0_0_01_01_00_00; // lhu
+        3'b000: controls = 16'b1_000_01_0_1_00_01_00_00; // lb
+        3'b001: controls = 16'b1_000_01_0_1_01_01_00_00; // lh
+        3'b010: controls = 16'b1_000_01_0_x_10_01_00_00; // lw
+        3'b100: controls = 16'b1_000_01_0_0_00_01_00_00; // lbu
+        3'b101: controls = 16'b1_000_01_0_0_01_01_00_00; // lhu
         default: begin
-          controls = 15'bx;
+          controls = 16'b0_xxx_0x_0_x_xx_10_00_00; // ???
           RV_mainValid = 0; // combi only
         end
       endcase
     7'b0100011: // store
       case(funct3)
-        3'b000: controls = 15'b0_001_1_1_x_00_00_00_00; // sb
-        3'b001: controls = 15'b0_001_1_1_x_01_00_00_00; // sh
-        3'b010: controls = 15'b0_001_1_1_x_10_00_00_00; // sw
+        3'b000: controls = 16'b0_001_01_1_x_00_00_00_00; // sb
+        3'b001: controls = 16'b0_001_01_1_x_01_00_00_00; // sh
+        3'b010: controls = 16'b0_001_01_1_x_10_00_00_00; // sw
         default: begin
-          controls = 15'b0_xxx_x_0_x_xx_00_00_00; // ???
+          controls = 16'b0_xxx_0x_0_x_xx_10_00_00; // ???
           RV_mainValid = 0; // combi only
         end
       endcase
-    7'b0110011: controls = 15'b1_xxx_0_0_x_xx_00_00_10; // R–type
-    7'b1100011: controls = 15'b0_010_0_0_x_xx_00_01_01; // B-type
-    7'b0010011: controls = 15'b1_000_1_0_x_xx_00_00_10; // I–type ALU
-    7'b1101111: controls = 15'b1_011_0_0_x_xx_10_01_00; // jal
+    7'b0110011: controls = 16'b1_xxx_00_0_x_xx_00_00_10; // R–type
+    7'b1100011: controls = 16'b0_010_00_0_x_xx_00_01_01; // B-type
+    7'b0010011: controls = 16'b1_000_01_0_x_xx_00_00_10; // I–type ALU
+    7'b1101111: controls = 16'b1_011_10_0_x_xx_10_01_00; // jal
 
-    7'b1100111: controls = 15'b1_000_1_0_x_xx_10_01_00; // jalr
-    7'b0110111: controls = 15'b1_111_1_0_x_xx_00_00_11; // lui
-    7'b0010111: controls = 15'b1_111_0_0_x_xx_10_00_00; // auipc
+    7'b1100111: controls = 16'b1_000_01_0_x_xx_10_10_00; // jalr
+    7'b0110111: controls = 16'b1_111_01_0_x_xx_00_00_11; // lui
+    7'b0010111: controls = 16'b1_111_11_0_x_xx_00_00_00; // auipc
     default: begin
-      controls = 15'b1_111_1_0_x_xx_10_00_00; // ???
+      controls = 16'b0_xxx_0x_0_x_xx_10_00_00; // ???
       RV_mainValid = 0; // combi only
     end
   endcase

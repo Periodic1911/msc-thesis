@@ -22,7 +22,8 @@ logic [4:0] Rs1D, Rs2D; // RISC-V only
 logic armD;
 
 /* control outputs */
-logic RegWriteD, MemWriteD, ALUSrcD;
+logic RegWriteD, MemWriteD;
+logic [1:0] ALUSrcD;
 logic [1:0] BranchD; // bit 0 RISC-V only
 logic [1:0] MemSizeD;
 logic MemSignedD;

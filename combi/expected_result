@@ -3,7 +3,7 @@ rv_tests/add	OK
 rv_tests/addi	OK
 rv_tests/and	OK
 rv_tests/andi	OK
-rv_tests/auipc	ERROR
+rv_tests/auipc	OK
 rv_tests/beq	OK
 rv_tests/bge	OK
 rv_tests/bgeu	OK
@@ -14,7 +14,7 @@ rv_tests/div	ERROR
 rv_tests/divu	ERROR
 rv_tests/j	OK
 rv_tests/jal	OK
-rv_tests/jalr	ERROR
+rv_tests/jalr	OK
 rv_tests/lb	ERROR
 rv_tests/lbu	OK
 rv_tests/lh	ERROR

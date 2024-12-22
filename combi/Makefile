@@ -14,8 +14,13 @@ NPR_FLAGS = --25k --package CABGA256 --speed 6 --lpf $(PINS) --freq 65
 all: $(TOP).bit
 
 dump.vcd: $(TOP)_tb.sv $(DEPS)
-	 verilator -j 8 --timescale 1ns --trace --binary --top-module $(TOP)_tb -I $^
+	 verilator -j 8 -DRISCV --timescale 1ns --trace --binary --top-module $(TOP)_tb -I $^
 	 ./obj_dir/V$(TOP)_tb
+
+arm-dump.vcd: $(TOP)_tb.sv $(DEPS)
+	 verilator -j 8 -DARM --timescale 1ns --trace --binary --top-module $(TOP)_tb -I $^
+	 ./obj_dir/V$(TOP)_tb
+	 mv dump.vcd arm-dump.vcd
 
 sim: dump.vcd
 	gtkwave $<
@@ -70,6 +75,14 @@ rv_tests/%.o: rv_tests/%.S rv_tests/riscv_test.h rv_tests/test_macros.h
 	make dump.vcd > logs/$(basename $@).log
 	mv dump.vcd dumps/$(basename $@).vcd
 	grep 'RISCV Simulation succeeded' logs/$(basename $@).log
+
+program_arm.hex:
+	cp stage_f/program_arm.hex stage_f/program_rv.hex
+	touch arm-dump.vcd
+	rm arm-dump.vcd
+	make arm-dump.vcd > logs/$(basename $@).log
+	mv arm-dump.vcd dumps/$(basename $@).vcd
+	grep 'ARM   Simulation succeeded' logs/$(basename $@).log
 
 dass: program.elf
 	llvm-objdump -d -M numeric $< | less

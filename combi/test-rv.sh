@@ -1,6 +1,7 @@
 #!/bin/bash
 
 files=$(ls rv_tests/*.S)
+files+=" program_arm.S"
 
 for f in $files; do
   basename=${f%.S}

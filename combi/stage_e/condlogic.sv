@@ -1,25 +1,30 @@
-module condlogic(input logic [3:0] CondE,
+module condlogic(input logic armE,
+                 input logic [3:0] CondE,
                  input logic [3:0] ALUFlags,
                  input logic [1:0] FlagWriteE,
-                 input logic PCSrc, RegWrite, MemWrite, BranchE,
+                 input logic PCSrc, RegWrite, MemWrite,
+                 input logic [1:0] BranchE,
                  input logic [3:0] FlagsE,
                  output logic [3:0] FlagsD,
-                 output logic PCSrcE, RegWriteE_ARM, MemWriteE_ARM, BranchTakenE);
+                 output logic PCSrcE, RegWriteE_ARM, MemWriteE_ARM,
+                 output logic [1:0] BranchTakenE);
 
 logic [1:0] FlagWrite;
 logic CondEx;
+logic [3:0] Flags;
 
 mux2 #(2)flagmux1(FlagsE[3:2], ALUFlags[3:2], FlagWrite[1], FlagsD[3:2]);
 mux2 #(2)flagmux0(FlagsE[1:0], ALUFlags[1:0], FlagWrite[0], FlagsD[1:0]);
+mux2 #(4)rvarmflagmux(ALUFlags, FlagsE, armE, Flags);
 
 // write controls are conditional
-condcheck cc(CondE, FlagsE, CondEx);
+condcheck cc(CondE, Flags, CondEx);
 
 assign FlagWrite = FlagWriteE & {2{CondEx}};
 assign RegWriteE_ARM = RegWrite & CondEx;
 assign MemWriteE_ARM = MemWrite & CondEx;
 assign PCSrcE = PCSrc & CondEx;
-assign BranchTakenE = BranchE & CondEx;
+assign BranchTakenE = BranchE & {2{CondEx}};
 
 endmodule
 
@@ -51,32 +56,5 @@ always_comb
     4'b1110: CondEx = 1'b1; // Always
     default: CondEx = 1'bx; // undefined
   endcase
-
-endmodule
-
-module rvbranch(input logic JumpE, BranchE,
-                input logic [3:0] ALUFlags,
-                input logic [3:0] CondE,
-                output logic RVPCSrcE);
-
-logic BranchTaken;
-assign RVPCSrcE = JumpE | (BranchE & BranchTaken);
-
-logic neg, zero, carry, overflow, ge;
-
-assign {neg, zero, carry, overflow} = ALUFlags;
-assign ge = (neg == overflow);
-
-always_comb
-  case(CondE)
-    4'b0000: BranchTaken = zero; // EQ
-    4'b0001: BranchTaken = ~zero; // NE
-    4'b0010: BranchTaken = carry; // CS
-    4'b0011: BranchTaken = ~carry; // CC
-    4'b1010: BranchTaken = ge; // GE
-    4'b1011: BranchTaken = ~ge; // LT
-    default: BranchTaken = 1'bx; // undefined
-  endcase
-
 
 endmodule

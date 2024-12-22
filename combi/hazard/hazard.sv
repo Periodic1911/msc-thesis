@@ -3,9 +3,9 @@ module hazard(
   input logic RegWriteM, RegWriteW,
   input logic [4:0] RdE, RdM, RdW,
   input logic [1:0] ResultSrcE, // bit 1 is RISC-V only
-  input logic RVPCSrcE, // RISC-V only
   input logic [4:0] Rs1D, Rs2D, Rs1E, Rs2E,
-  input logic PCSrcD, PCSrcE, PCSrcM, PCSrcW, BranchTakenE, // ARM only
+  input logic PCSrcD, PCSrcE, PCSrcM, PCSrcW,
+  input logic [1:0] BranchTakenE, // bit 0 RISC-V only
 
   output logic StallF, StallD, FlushD, FlushE,
   output logic [1:0] ForwardAE, ForwardBE
@@ -37,8 +37,7 @@ assign PCWrPendingF = (armD & PCSrcD) | (armE & PCSrcE) | (armM & PCSrcM); // AR
 
 assign StallD = LDStall;
 assign StallF = LDStall | PCWrPendingF;
-assign FlushE = LDStall | (armE & BranchTakenE) | (~armE & RVPCSrcE);
-assign FlushD = (PCWrPendingF | (armW & PCSrcW) | (armE & BranchTakenE)) // ARM
-              | (~armE & RVPCSrcE); // RISC-V
+assign FlushE = LDStall | |BranchTakenE;
+assign FlushD = (PCWrPendingF | (armW & PCSrcW) | |BranchTakenE);
 
 endmodule

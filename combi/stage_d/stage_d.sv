@@ -14,7 +14,8 @@ module stage_d(
   output logic [4:0] Rs1D, Rs2D, // RISC-V only
 
   /* control outputs */
-  output logic RegWriteD, MemWriteD, BranchD, ALUSrcD,
+  output logic RegWriteD, MemWriteD, ALUSrcD,
+  output logic [1:0] BranchD,
   output logic [1:0] MemSizeD,
   output logic MemSignedD,
   output logic [3:0] ALUControlD,

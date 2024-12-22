@@ -3,8 +3,7 @@ module alu(
   input logic [31:0] Op1E, Op2E,
 
   output logic [31:0] ALUResultE,
-  output logic [3:0] ALUFlags, // ARM only
-  output logic ZeroE // RISC-V only
+  output logic [3:0] ALUFlags
 );
 
 logic [31:0] addResult;
@@ -37,12 +36,10 @@ always_comb
     default: ALUResultE = 32'hxxxxxxxx; /// ???
   endcase
 
-assign ZeroE = (ALUResultE == 0); // RISC-V only
+logic neg, zero, carry, overflow;
+assign ALUFlags = {neg, zero, carry, overflow};
 
-logic neg, zero, carry, overflow; // ARM only
-assign ALUFlags = {neg, zero, carry, overflow}; // ARM only
-
-always_comb begin : ARM_Flags // ARM only
+always_comb begin : ARM_Flags
   zero = (ALUResultE == 0);
   neg = ALUResultE[31];
 end

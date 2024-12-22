@@ -32,7 +32,7 @@ sim: dump.vcd
 	netlistsvg -o $@ $<
 
 %.stat: %.json
-	synlig -p "stat" $^
+	synlig -p "stat" $^ | tee $@
 
 svg: $(TOP).svg
 
@@ -43,7 +43,11 @@ svg: $(TOP).svg
 	nextpnr-ecp5 $(NPR_FLAGS) --json $< --textcfg $@
 
 %.json: $(DEPS)
-	synlig -q -p "synth_ecp5 -json $@" -r $(@:.json=) $^
+	synlig -DARM -DRISCV -q -p "synth_ecp5 -json $@" -r $(@:.json=) $^
+%.arm.json: $(DEPS)
+	synlig -DARM -q -p "synth_ecp5 -json $@" -r $(@:.arm.json=) $^
+%.riscv.json: $(DEPS)
+	synlig -DRISCV -q -p "synth_ecp5 -json $@" -r $(@:.riscv.json=) $^
 
 program_ram: $(TOP).svf
 	sudo openocd -f $(OCD_CONFIG) -c "init; scan_chain; svf -tap ecp5.tap $< -quiet -progress; exit;"

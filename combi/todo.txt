@@ -1,6 +1,6 @@
-[] merge RVPCSrc with BranchTakenE, make 2-bit
-[] replace PCRes with 2-bit ALUSrc
-[] fix auipc and jalr
+[x] merge RVPCSrc with BranchTakenE, make 2-bit
+[x] replace PCRes with 2-bit ALUSrc
+[x] fix auipc and jalr
 
 #alu ops
 

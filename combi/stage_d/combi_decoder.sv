@@ -175,15 +175,18 @@ end
 
 /* branch signals */
 always_comb
-  case(funct3)
-    3'b000: RV_Cond = 4'b0000; // beq
-    3'b001: RV_Cond = 4'b0001; // bne
-    3'b100: RV_Cond = 4'b1011; // blt
-    3'b101: RV_Cond = 4'b1010; // bge
-    3'b110: RV_Cond = 4'b0011; // bltu
-    3'b111: RV_Cond = 4'b0010; // bgeu
-    default: RV_Cond = 4'bx; // undefined
-  endcase
+  if(ALUOp == 2'b01) // ALUOp subtract is only used for branch
+    case(funct3)
+      3'b000: RV_Cond = 4'b0000; // beq
+      3'b001: RV_Cond = 4'b0001; // bne
+      3'b100: RV_Cond = 4'b1011; // blt
+      3'b101: RV_Cond = 4'b1010; // bge
+      3'b110: RV_Cond = 4'b0010; // bltu
+      3'b111: RV_Cond = 4'b0011; // bgeu
+      default: RV_Cond = 4'bx; // undefined
+    endcase
+  else
+    RV_Cond = 4'b1110; // Always execute
 
 endmodule
 

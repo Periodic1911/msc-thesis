@@ -15,9 +15,9 @@ rv_tests/divu	ERROR
 rv_tests/j	OK
 rv_tests/jal	OK
 rv_tests/jalr	OK
-rv_tests/lb	ERROR
+rv_tests/lb	OK
 rv_tests/lbu	OK
-rv_tests/lh	ERROR
+rv_tests/lh	OK
 rv_tests/lhu	OK
 rv_tests/lui	OK
 rv_tests/lw	OK
@@ -29,8 +29,8 @@ rv_tests/or	OK
 rv_tests/ori	OK
 rv_tests/rem	ERROR
 rv_tests/remu	ERROR
-rv_tests/sb	ERROR
-rv_tests/sh	ERROR
+rv_tests/sb	OK
+rv_tests/sh	OK
 rv_tests/simple	OK
 rv_tests/sll	OK
 rv_tests/slli	OK

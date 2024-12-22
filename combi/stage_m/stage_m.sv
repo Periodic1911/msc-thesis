@@ -30,6 +30,7 @@ logic [31:0] WriteDataM;
 logic MemWriteM;
 logic [1:0] MemSizeM;
 logic MemSignedM;
+logic MemSignedW;
 
 flopr #(109) em_stage(clk, rst,
   { ALUResultE, WriteDataE,
@@ -54,6 +55,8 @@ flopr #(109) em_stage(clk, rst,
    }
  );
 
+ flopr #(1) mw_signed(clk, rst, MemSignedM, MemSignedW);
+
 `ifdef RISCV `ifdef ARM
 flopr #(1) de_stage_armbit(clk, rst,
   armE,
@@ -68,7 +71,7 @@ assign armM = 1;
 assign armM = 0;
 `endif `endif
 
-memory #(13)datamem(clk, rst, MemWriteM, MemSizeM, MemSignedM, ALUResultM[12:0], WriteDataM, ReadDataW);
+memory #(13)datamem(clk, rst, MemWriteM, MemSizeM, MemSignedW, ALUResultM[12:0], WriteDataM, ReadDataW);
 //ram #(13)datamem(clk, rst, MemWriteM, ALUResultM[14:2], WriteDataM, ReadDataW);
 
 assign WriteData = WriteDataM;

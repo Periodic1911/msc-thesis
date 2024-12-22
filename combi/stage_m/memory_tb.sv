@@ -63,6 +63,17 @@ initial begin
   #10
   MemSize = 2;
   WE = 0;
+  #10 A = 100;
+  WD = 32'h40804040;
+  WE = 1;
+  #10
+  WE = 0;
+  MemSigned = 1;
+  MemSize = 0;
+  #10
+  MemSize = 1;
+  #10
+  MemSize = 2;
   #10 $exit;
 end
 

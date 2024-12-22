@@ -69,7 +69,7 @@ logic [31:0] Op1E, Op1Inter, Op2E;
 mux3 #(32)forwardMux1(Rd1E, ResultW, ALUResultM, ForwardAE, Op1Inter);
 mux2 #(32)PCMux1(Op1Inter, PCE, ALUSrcE[1] & ~armE, Op1E);
 mux3 #(32)forwardMux2(Rd2E, ResultW, ALUResultM, ForwardBE, WriteDataE);
-mux3 #(32)immMux2(WriteDataE, immextE, {FlagsE, 28'b0}, (ALUSrcE & {armE, ~armE}), Op2E); // FlagsE is ARM only
+mux3 #(32)immMux2(WriteDataE, immextE, {FlagsE, 28'b0}, (ALUSrcE & {armE, 1'b1}), Op2E); // FlagsE is ARM only
 
 assign PCTargetE = PCE + immextE;
 

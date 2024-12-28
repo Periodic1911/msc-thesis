@@ -1,4 +1,4 @@
-TOP = stage_e
+TOP = barrel_shift
 DEPS = alu.sv ../common/common.sv condlogic.sv rvbranch.sv stage_e.sv
 OCD_CONFIG = /usr/share/icesugar-pro/tools/cmsisdap.cfg
 PINS = pins.lpf

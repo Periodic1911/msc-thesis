@@ -13,20 +13,24 @@ module stage_e(
   output logic [31:0] WriteDataE, ALUResultE,
 
   /* control inputs */
-  input logic RegWriteD, MemWriteD, BranchD, ALUSrcD,
-  input logic [2:0] ALUControlD,
+  input logic RegWriteD, MemWriteD,
+  input logic [1:0] ALUSrcD,
+  input logic [1:0] BranchD,
+  input logic [3:0] ALUControlD,
   input logic PCSrcD, // ARM only
   input logic [1:0] FlagWriteD, // ARM only
   input logic [3:0] CondD, // ARM only
   input logic [1:0] ResultSrcD, // RISC-V only
-  input logic JumpD, // RISC-V only
+  input logic [1:0] MemSizeD,
+  input logic MemSignedD,
 
   output logic [1:0] ResultSrcE, // bit 1 is RISC-V only
   output logic PCSrcE, // ARM only
   output logic RegWriteE, MemWriteE,
+  output logic [1:0] MemSizeE,
+  output logic MemSignedE,
 
-  output logic BranchTakenE, // ARM only
-  output logic RVPCSrcE, // RISC-V only
+  output logic [1:0] BranchTakenE, // bit 0 RISC-V only
   output logic [31:0] PCTargetE, // RISC-V only
   output logic armE, // combi only
 
@@ -41,12 +45,13 @@ module stage_e(
 logic [31:0] Rd1E, Rd2E;
 logic [31:0] immextE;
 logic [31:0] PCE; // RISC-V only
-logic RegWrite, MemWrite, BranchE, ALUSrcE;
-logic [2:0] ALUControlE;
+logic RegWrite, MemWrite;
+logic [1:0] ALUSrcE;
+logic [1:0] BranchE; // bit 0 RISC-V only
+logic [3:0] ALUControlE;
 logic PCSrc; // ARM only
 logic [1:0] FlagWriteE; // ARM only
 logic [3:0] CondE; // ARM only
-logic JumpE; // RISC-V only
 
 logic [3:0] FlagsE, FlagsD; // ARM only
 
@@ -56,34 +61,32 @@ assign RegWriteE = armE ? RegWriteE_ARM : RegWrite;
 assign MemWriteE = armE ? MemWriteE_ARM : MemWrite;
 condlogic condl(.*);
 
-rvbranch branch_rv(.*); // RV only
-
-logic ZeroE; // RV only
-logic [3:0] ALUFlags; // ARM only
+logic [3:0] ALUFlags;
 alu myalu(.*);
 
-logic [31:0] Op1E, Op2E;
+logic [31:0] Op1E, Op1Inter, Op2E;
 
-mux3 #(32)forwardMux1(Rd1E, ResultW, ALUResultM, ForwardAE, Op1E);
+mux3 #(32)forwardMux1(Rd1E, ResultW, ALUResultM, ForwardAE, Op1Inter);
+mux2 #(32)PCMux1(Op1Inter, PCE, ALUSrcE[1] & ~armE, Op1E);
 mux3 #(32)forwardMux2(Rd2E, ResultW, ALUResultM, ForwardBE, WriteDataE);
-mux2 #(32)immMux2(WriteDataE, immextE, ALUSrcE, Op2E);
+mux3 #(32)immMux2(WriteDataE, immextE, {FlagsE, 28'b0}, (ALUSrcE & {armE, 1'b1}), Op2E); // FlagsE is ARM only
 
 assign PCTargetE = PCE + immextE;
 
-flopr #(196) de_stage(clk, (rst | FlushE),
+flopr #(201) de_stage(clk, (rst | FlushE),
   {
   Rd1D, Rd2D, RdD, immextD,
   PCD, PCPlus4D, // RISC-V only
   Rs1D, Rs2D, // RISC-V only
   /* control inputs */
   RegWriteD, MemWriteD, BranchD, ALUSrcD,
+  MemSizeD, MemSignedD,
   ALUControlD,
   PCSrcD, // ARM only
   FlagWriteD, // ARM only
   CondD, // ARM only
   FlagsD, // ARM only
-  ResultSrcD, // bit 1 RISC-V only
-  JumpD // RISC-V only
+  ResultSrcD // bit 1 RISC-V only
   },
   {
   Rd1E, Rd2E, RdE, immextE,
@@ -91,13 +94,13 @@ flopr #(196) de_stage(clk, (rst | FlushE),
   Rs1E, Rs2E, // RISC-V only
   /* control inputs */
   RegWrite, MemWrite, BranchE, ALUSrcE,
+  MemSizeE, MemSignedE,
   ALUControlE,
   PCSrc, // ARM only
   FlagWriteE, // ARM only
   CondE, // ARM only
   FlagsE, // ARM only
-  ResultSrcE, // bit 1 RISC-V only
-  JumpE // RISC-V only
+  ResultSrcE // bit 1 RISC-V only
   }
 );
 

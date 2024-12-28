@@ -13,6 +13,8 @@ module stage_m (
   input logic RegWriteE,
   input logic [1:0] ResultSrcE, // bit 1 RV only
   input logic MemWriteE,
+  input logic [1:0] MemSizeE,
+  input logic MemSignedE,
 
   output logic PCSrcM, // ARM only
   output logic RegWriteM,
@@ -26,15 +28,20 @@ module stage_m (
 
 logic [31:0] WriteDataM;
 logic MemWriteM;
+logic [1:0] MemSizeM;
+logic MemSignedM;
+logic MemSignedW;
 
-flopr #(106) em_stage(clk, rst,
+flopr #(109) em_stage(clk, rst,
   { ALUResultE, WriteDataE,
    PCPlus4E, // RV only
    RdE,
    PCSrcE, // ARM only
    RegWriteE,
    ResultSrcE,
-   MemWriteE
+   MemWriteE,
+   MemSizeE,
+   MemSignedE
    },
   { ALUResultM, WriteDataM,
    PCPlus4M, // RV only
@@ -42,9 +49,13 @@ flopr #(106) em_stage(clk, rst,
    PCSrcM, // ARM only
    RegWriteM,
    ResultSrcM,
-   MemWriteM
+   MemWriteM,
+   MemSizeM,
+   MemSignedM
    }
  );
+
+ flopr #(1) mw_signed(clk, rst, MemSignedM, MemSignedW);
 
 `ifdef RISCV `ifdef ARM
 flopr #(1) de_stage_armbit(clk, rst,
@@ -60,7 +71,8 @@ assign armM = 1;
 assign armM = 0;
 `endif `endif
 
-ram #(13)datamem(clk, rst, MemWriteM, ALUResultM[14:2], WriteDataM, ReadDataW);
+memory #(13)datamem(clk, rst, MemWriteM, MemSizeM, MemSignedW, ALUResultM[12:0], WriteDataM, ReadDataW);
+//ram #(13)datamem(clk, rst, MemWriteM, ALUResultM[14:2], WriteDataM, ReadDataW);
 
 assign WriteData = WriteDataM;
 assign DataAddr = ALUResultM;

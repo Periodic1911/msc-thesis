@@ -1,0 +1,35 @@
+[x] merge RVPCSrc with BranchTakenE, make 2-bit
+[x] replace PCRes with 2-bit ALUSrc
+[x] fix auipc and jalr
+
+#alu ops
+
+[x] add
+[x] sub
+[x] xor
+[x] or
+
+[x] and
+[x] lsl
+[x] lsr
+[x] asr
+
+[x] slt
+[x] sltu
+[x] immfwd
+
+#mem ops
+[x] byte
+[x] half
+[x] word
+
+[x] sign-ext
+[x] zero-ext
+
+#imm ops
+[x] imm20 << 12
+
+
+combi 2260
+rv 1649
+arm 1530

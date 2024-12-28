@@ -14,13 +14,16 @@ module stage_d(
   output logic [4:0] Rs1D, Rs2D, // RISC-V only
 
   /* control outputs */
-  output logic RegWriteD, MemWriteD, BranchD, ALUSrcD,
-  output logic [2:0] ALUControlD,
+  output logic RegWriteD, MemWriteD,
+  output logic [1:0] ALUSrcD,
+  output logic [1:0] BranchD,
+  output logic [1:0] MemSizeD,
+  output logic MemSignedD,
+  output logic [3:0] ALUControlD,
   output logic PCSrcD, // ARM only
   output logic [1:0] FlagWriteD, // ARM only
   output logic [3:0] CondD, // ARM only
   output logic [1:0] ResultSrcD, // bit 1 RISC-V only
-  output logic JumpD, // RISC-V only
   output logic armD, // combi only
 
   input logic StallD, FlushD
@@ -53,7 +56,7 @@ assign armD = 0;
 
 
 logic [31:0] PCPlus8D = PCPlus4F;
-logic [1:0] ImmSrcD;
+logic [2:0] ImmSrcD;
 logic [1:0] RegSrcD; // ARM only
 
 combi_decoder dec(.*);
@@ -73,8 +76,6 @@ always_comb
   end
 
 assign {Rs1D, Rs2D} = {ra1, ra2};
-
-assign CondD = instr[31:28]; // ARM only
 
 regfile rf(.clk(~clk), .*, .wa3(RdW), .we3(RegWriteW), .wd3(ResultW),
   .r15(PCPlus8D), // ARM only

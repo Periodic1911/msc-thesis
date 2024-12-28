@@ -1,12 +1,17 @@
 #!/bin/bash
 
+arm_files="arm_tests/DDCA.S"
 files=$(ls rv_tests/*.S)
-files+=" program_arm.S"
 
-for f in $files; do
+for f in $arm_files $files; do
   basename=${f%.S}
   echo -ne "$basename\t"
-  make ${basename#rv_tests/}.hex > /dev/null 2> /dev/null && echo OK || echo ERROR
+  nodir=${basename#rv_tests/}
+  nodir=${nodir#arm_tests/}
+  [[ ${basename#arm} == $basename ]] && \
+    { make $nodir.hex > /dev/null 2> /dev/null && echo OK || echo ERROR; } \
+  || \
+    { make $nodir.arm.hex > /dev/null 2> /dev/null && echo OK || echo ERROR; }
 done | tee test_result
 
 echo "      NEW RESULTS     |      OLD RESULTS     "

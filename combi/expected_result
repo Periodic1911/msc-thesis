@@ -1,3 +1,4 @@
+arm_tests/DDCA	OK
 rv_tests/DDCA	OK
 rv_tests/add	OK
 rv_tests/addi	OK
@@ -45,4 +46,3 @@ rv_tests/sw	OK
 rv_tests/temp	OK
 rv_tests/xor	OK
 rv_tests/xori	OK
-program_arm	OK

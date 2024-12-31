@@ -1,6 +1,8 @@
 module alu(
   input logic [3:0] ALUControlE,
   input logic [31:0] Op1E, Op2E,
+  input logic [2:0] ShiftTypeE,
+  input logic [4:0] ShiftAmtE,
 
   output logic [31:0] ALUResultE,
   output logic [3:0] ALUFlags

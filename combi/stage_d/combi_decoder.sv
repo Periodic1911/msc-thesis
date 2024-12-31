@@ -15,6 +15,8 @@ module combi_decoder(input logic [31:0] instr,
                      output logic PCSrcD,
                      output logic [1:0] FlagWriteD,
                      output logic [1:0] RegSrcD,
+                     output logic [4:0] ShiftAmtD,
+                     output logic [2:0] ShiftTypeD,
 
 `ifdef ARM `ifdef RISCV
                      output logic armD,
@@ -65,12 +67,16 @@ logic [1:0] ARM_MemSize;
 logic ARM_MemSigned;
 logic [1:0] ARM_ImmSrc, RegSrc;
 logic [3:0] ARM_ALUControl;
+logic [7:0] Shift;
+logic [4:0] ShiftAmt;
+logic [2:0] ShiftType;
 logic ARM_valid; // combi only
 
-assign {ARM_Op, Funct, Rd} = {
+assign {ARM_Op, Funct, Rd, Shift} = {
   instr[27:26],
   instr[25:20],
-  instr[15:12] };
+  instr[15:12],
+  instr[11:4] };
 
 arm_decoder arm_dec(.*, .Op(ARM_Op), .RegW(ARM_RegWrite), .MemSigned(ARM_MemSigned), .MemSize(ARM_MemSize), .MemW(ARM_MemWrite), .ALUSrc(ARM_ALUSrc), .ImmSrc(ARM_ImmSrc), .ALUControl(ARM_ALUControl), .Branch(ARM_Branch) );
 
@@ -87,6 +93,8 @@ always_comb
     MemSizeD = ARM_MemSize;
     MemSignedD = ARM_MemSigned;
     ALUControlD = ARM_ALUControl;
+    ShiftAmtD = ShiftAmt;
+    ShiftTypeD = ShiftType;
     BranchD = {ARM_Branch, 1'b0};
     ALUSrcD = {1'b0, ARM_ALUSrc};
     ImmSrcD[1:0] = ARM_ImmSrc;
@@ -103,6 +111,8 @@ always_comb
     PCSrcD = 1'bx;
     FlagWriteD = 2'bx;
     RegSrcD = 2'bx;
+    ShiftAmtD = 5'b0; // Don't want to shift operand2
+    ShiftTypeD = 3'bx;
 
     /* Shared */
     RegWriteD = RV_RegWrite;
@@ -253,6 +263,7 @@ endmodule
 
 module arm_decoder(input logic [1:0] Op,
                    input logic [5:0] Funct,
+                   input logic [7:0] Shift,
                    input logic [3:0] Rd,
                    output logic ARM_valid, // combi only
                    output logic Branch,
@@ -262,14 +273,17 @@ module arm_decoder(input logic [1:0] Op,
                    output logic [1:0] MemSize,
                    output logic MemSigned,
                    output logic [1:0] ImmSrc, RegSrc,
+                   output logic [4:0] ShiftAmt,
+                   output logic [2:0] ShiftType,
                    output logic [3:0] ALUControl);
 
 // TODO add to decoder controls
 assign MemSigned = 0;
 assign MemSize = 2'b10;
 
-logic [9:0] controls;
+logic [10:0] controls;
 logic ALUOp;
+logic ImmShift;
 logic mainValid, aluValid; // combi only
 
 assign ARM_valid = mainValid & aluValid; // combi only
@@ -278,26 +292,29 @@ assign ARM_valid = mainValid & aluValid; // combi only
 always_comb begin
   mainValid = 1; // combi only
   case(Op)
-    // Data-processing immediate
-    2'b00: if (Funct[5]) controls = 10'b0000101001;
-    // Data-processing register
-    else controls = 10'b0000001001;
-    // LDR
-    2'b01: if (Funct[0]) controls = 10'b0001111000;
-    // STR
-    else controls = 10'b1001110100;
-    // B
-    2'b10: controls = 10'b0110100010;
+           // Data-processing immediate
+    2'b00: if (Funct[5]) controls = 11'b00001010011;
+           // Data-processing register
+           else controls = 11'b00000010010;
+           // LDR
+    2'b01: if (Funct[0]) controls = 11'b00011110000;
+           // STR
+           else controls = 11'b10011101000;
+           // B
+    2'b10: controls = 11'b01101000100;
     // Unimplemented
     default: begin
-      controls = 10'bx;
+      controls = 11'bx;
       mainValid = 0; // combi only
     end
   endcase
 end
 
 assign {RegSrc, ImmSrc, ALUSrc, MemtoReg,
-  RegW, MemW, Branch, ALUOp} = controls;
+  RegW, MemW, Branch, ALUOp, ImmShift} = controls;
+
+assign ShiftType = ImmShift ? 3'b1_11 : 3'bx_xx;
+assign ShiftAmt = ImmShift ? {Shift[7:4], 1'b0} : 5'bxxxxx;
 
 // ALU Decoder
 /*

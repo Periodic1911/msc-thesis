@@ -63,7 +63,8 @@ logic [1:0] FlagW;
 logic PCSrc, ARM_RegWrite, ARM_MemWrite, MemtoReg, ARM_ALUSrc, ARM_Branch;
 logic [1:0] ARM_MemSize;
 logic ARM_MemSigned;
-logic [1:0] ARM_ImmSrc, RegSrc, ARM_ALUControl;
+logic [1:0] ARM_ImmSrc, RegSrc;
+logic [3:0] ARM_ALUControl;
 logic ARM_valid; // combi only
 
 assign {ARM_Op, Funct, Rd} = {
@@ -85,7 +86,7 @@ always_comb
     MemWriteD = ARM_MemWrite;
     MemSizeD = ARM_MemSize;
     MemSignedD = ARM_MemSigned;
-    ALUControlD = {2'bxx, ARM_ALUControl};
+    ALUControlD = ARM_ALUControl;
     BranchD = {ARM_Branch, 1'b0};
     ALUSrcD = {1'b0, ARM_ALUSrc};
     ImmSrcD[1:0] = ARM_ImmSrc;
@@ -260,7 +261,8 @@ module arm_decoder(input logic [1:0] Op,
                    output logic MemtoReg, ALUSrc,
                    output logic [1:0] MemSize,
                    output logic MemSigned,
-                   output logic [1:0] ImmSrc, RegSrc, ALUControl);
+                   output logic [1:0] ImmSrc, RegSrc,
+                   output logic [3:0] ALUControl);
 
 // TODO add to decoder controls
 assign MemSigned = 0;
@@ -298,25 +300,50 @@ assign {RegSrc, ImmSrc, ALUSrc, MemtoReg,
   RegW, MemW, Branch, ALUOp} = controls;
 
 // ALU Decoder
+/*
+    2'b00: ALUControl = 4'b0000; // addition
+    2'b01: ALUControl = 4'b0001; // subtraction
+    2'b11: ALUControl = 4'b0110; // lui
+      3'b001:  ALUControl = 4'b1000; // sll, slli
+               ALUControl = 4'b1010; // sra, srai
+               ALUControl = 4'b1001; // srl, srli
+      3'b010:  ALUControl = 4'b0101; // slt, slti
+      3'b011:  ALUControl = 4'b0101; // sltu, sltiu
+      3'b100:  ALUControl = 4'b0100; // xor, xori
+      3'b110:  ALUControl = 4'b0011; // or, ori
+      3'b111:  ALUControl = 4'b0010; // and, andi
+*/
 always_comb begin
   aluValid = 1; // combi only
   if (ALUOp) begin // which DP instr?
     case(Funct[4:1])
-      4'b0100: ALUControl = 2'b00; // ADD
-      4'b0010: ALUControl = 2'b01; // SUB
-      4'b0000: ALUControl = 2'b10; // AND
-      4'b1100: ALUControl = 2'b11; // ORR
+      4'b0000: ALUControl = 4'b0010; // AND
+      //4'b0001: ALUControl = 5'b00100; // EOR
+      4'b0010: ALUControl = 4'b0001; // SUB
+      //4'b0011: ALUControl = 5'b10101; // RSB
+      4'b0100: ALUControl = 4'b0000; // ADD
+      //4'b0101: ALUControl = 5'b10010; // ADC
+      //4'b0110: ALUControl = 5'b10011; // SBC
+      //4'b0111: ALUControl = 5'b10111; // RSC
+      //4'b1000: ALUControl = 5'b00010; // TST (AND)
+      //4'b1001: ALUControl = 5'b00100; // TEQ (EOR)
+      //4'b1010: ALUControl = 5'b00001; // CMP (SUB)
+      //4'b1011: ALUControl = 5'b00000; // CMN (ADD)
+      4'b1100: ALUControl = 4'b0011; // ORR
+      4'b1101: ALUControl = 4'b0110; // MOV
+      //4'b1110: ALUControl = 5'b10000; // BIC
+      //4'b1111: ALUControl = 5'b10110; // MVN
       default: begin
-        ALUControl = 2'bx; // unimplemented
+        ALUControl = 4'bx; // unimplemented
         aluValid = 0; // combi only
       end
     endcase
     // update flags if S bit is set (C & V only for arith)
     FlagW[1] = Funct[0];
     FlagW[0] = Funct[0] &
-      (ALUControl == 2'b00 | ALUControl == 2'b01);
+      (ALUControl == 4'b0000 | ALUControl == 4'b0001);
   end else begin
-    ALUControl = 2'b00; // add for non-DP instructions
+    ALUControl = 4'b0000; // add for non-DP instructions
     FlagW = 2'b00; // don't update Flags
   end
 end

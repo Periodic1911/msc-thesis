@@ -1,0 +1,55 @@
+For test:
+[] MOV immediate
+[] Pre shift MOV (rotate *right* 2*op[11:0])
+
+Multi cycle (for real):
+Having an extra write port and more forwarding logic and anothe ALUResult wire is too much for only a few instructions
+[] Forward Op1 / Op2
+[] Stall Fetch
+[] Microinst counter (2 bit)
+[] LDM stall (also halts uinst counter)
+[] Force immediate 4
+
+[] Shift with register
+Rm >> Rs
+Rn OP (Fwd) -> Rd
+
+[] STR/LDR with post inc
+Rn -> (Rd)
+(Fwd) + Rm -> Rn
+
+[] LDM/STM
+(Post inc) Rn -> (Rd)
+(Pre inc) Rn + (-Imm(4)) -> (Rd)
+... Fwd + (-Imm(4)) -> (Rd)
+(Write back) (Fwd) -> Rn
+(Write back post inc) (Fwd) + (-Imm(4)) -> Rn
+
+[] MLA
+Rm *low Rs
+Rn + (Fwd)
+
+[] MULL
+Rm *low Rs -> RdLo
+Rm *high Rs -> RdHi
+
+[] MLAL
+Rm *low Rs
+RdLo +set Fwd -> RdLo
+Rm *high Rs
+RdHi +carry Fwd -> RdHi
+
+New ALU ops
+[] Bit clear
+[] Not
+[] Reverse subtract
+[] Move to/from status register
+[] Mult low
+[] Mult High
+
+Multi-cycle:
+[] Load/Store Multiple
+[] Swap (make single cycle, memory units support simulatneous write/read)
+
+Other:
+[] Pre-shifter

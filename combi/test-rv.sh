@@ -1,6 +1,6 @@
 #!/bin/bash
 
-arm_files="arm_tests/DDCA.S"
+arm_files=$(ls arm_tests/*.S)
 files=$(ls rv_tests/*.S)
 
 for f in $arm_files $files; do

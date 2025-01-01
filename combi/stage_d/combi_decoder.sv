@@ -313,8 +313,8 @@ end
 assign {RegSrc, ImmSrc, ALUSrc, MemtoReg,
   RegW, MemW, Branch, ALUOp, ImmShift} = controls;
 
-assign ShiftType = ImmShift ? 3'b1_11 : 3'bx_xx;
-assign ShiftAmt = ImmShift ? {Shift[7:4], 1'b0} : 5'bxxxxx;
+assign ShiftType = ImmShift ? 3'b1_11 : 3'b1_xx;
+assign ShiftAmt = ImmShift ? {Shift[7:4], 1'b0} : 5'b00000;
 
 // ALU Decoder
 /*

@@ -1,4 +1,5 @@
 arm_tests/DDCA	OK
+arm_tests/simpl	OK
 rv_tests/DDCA	OK
 rv_tests/add	OK
 rv_tests/addi	OK

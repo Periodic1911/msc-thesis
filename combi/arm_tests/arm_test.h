@@ -29,7 +29,7 @@ rotate is RIGHT, not left
   ldr r2, =0x10000000; \
 .prname_next: \
   ldr r1, [r0]; \
-  ands r1, r1, r1; \
+  ands r1, r1, $255; \
   beq .prname_done; \
   str r1, [r2]; \
   add r0, r0, 1; \
@@ -73,7 +73,7 @@ TEST_FUNC_RET: \
   mov r1, $7; \
   mov r0, $100; \
   str r1, [r0]; \
-  b TEST_FUNC_RET;
+TEST_FUNC_LOOP: b TEST_FUNC_LOOP;
 
 #define ARMTEST_DATA_BEGIN .balign 4;
 #define ARMTEST_DATA_END

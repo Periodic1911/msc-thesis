@@ -1,4 +1,5 @@
 module alu(
+  input logic armE,
   input logic [3:0] ALUControlE,
   input logic [31:0] Op1E, Op2E,
   input logic [2:0] ShiftTypeE,
@@ -10,14 +11,26 @@ module alu(
 
 logic [31:0] addResult;
 
-add_sub as(.a(Op1E), .b(Op2E), .q(addResult), .add(~ALUControlE[0]), .cOut(carry),
+add_sub as(.a(Op1E), .b(Op2Shifted), .q(addResult), .add(~ALUControlE[0]), .cOut(carry),
   .overflow(overflow)
   );
 
-logic [31:0] shiftResult;
-logic [1:0] shiftOp = ALUControlE[1:0];
+logic [31:0] shiftInput, shiftResult;
+logic [4:0] shiftAmount;
+logic [1:0] shiftOp;
 
-barrel_shift bs(Op1E, Op2E[4:0], shiftOp, shiftResult);
+mux2 #(2)shopmux(ALUControlE[1:0],ShiftTypeE[1:0],armE,shiftOp);
+
+mux2 #(32)shinmux(Op1E,Op2E,armE,shiftInput);
+mux4 #(5)shamtmux1(Op2E[4:0],Op2E[4:0],Op1E[4:0],ShiftAmtE,
+                   {armE,ShiftTypeE[2]},
+                   shiftAmount);
+
+barrel_shift bs(shiftInput, shiftAmount, shiftOp, shiftResult);
+
+logic [31:0] Op2Shifted;
+mux2 #(32)armmux(Op2E,shiftResult,armE,Op2Shifted);
+
 
 logic rv_ge = (addResult[31] == overflow);
 
@@ -25,13 +38,13 @@ always_comb
   case(ALUControlE)
     4'b0000: ALUResultE = addResult; // add
     4'b0001: ALUResultE = addResult; // sub
-    4'b0010: ALUResultE = Op1E & Op2E; // and
-    4'b0011: ALUResultE = Op1E | Op2E; // or
-    4'b0100: ALUResultE = Op1E ^ Op2E; // xor
+    4'b0010: ALUResultE = Op1E & Op2Shifted; // and
+    4'b0011: ALUResultE = Op1E | Op2Shifted; // or
+    4'b0100: ALUResultE = Op1E ^ Op2Shifted; // xor
     // RISC-V only
     4'b0101: ALUResultE = {31'b0, ~rv_ge}; // slt
     4'b0111: ALUResultE = {31'b0, carry}; // sltu
-    4'b0110: ALUResultE = Op2E; // forward immediate
+    4'b0110: ALUResultE = Op2Shifted; // forward immediate
     4'b1000: ALUResultE = shiftResult; // sll
     4'b1001: ALUResultE = shiftResult; // srl
     4'b1010: ALUResultE = shiftResult; // sra

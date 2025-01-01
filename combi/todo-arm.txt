@@ -40,16 +40,26 @@ Rm *high Rs
 RdHi +carry Fwd -> RdHi
 
 New ALU ops
-[] Bit clear
-[] Not
-[] Reverse subtract
-[] Move to/from status register
+[/] Bit clear
+[/] Not
+[/] Reverse subtract
+[] Move to status register
+[] Move from status register
 [] Mult low
 [] Mult High
+[] Pre-shifter
+  [] mux shift to Op2
+  [] shift left
+  [] shift right
+  [] shift right arith
+  [] rotate right
+  [] 11:(7/8) shift amount
+
+New Immediates
+[] 8-bit pre-shift imm
+[] 8-bit ldrhb imm
 
 Multi-cycle:
-[] Load/Store Multiple
 [] Swap (make single cycle, memory units support simulatneous write/read)
 
 Other:
-[] Pre-shifter

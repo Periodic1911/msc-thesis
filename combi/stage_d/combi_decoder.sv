@@ -281,9 +281,9 @@ module arm_decoder(input logic [1:0] Op,
 assign MemSigned = 0;
 assign MemSize = 2'b10;
 
-logic [10:0] controls;
+logic [11:0] controls;
 logic ALUOp;
-logic ImmShift;
+logic [1:0] DPShift;
 logic mainValid, aluValid; // combi only
 
 assign ARM_valid = mainValid & aluValid; // combi only
@@ -293,28 +293,31 @@ always_comb begin
   mainValid = 1; // combi only
   case(Op)
            // Data-processing immediate
-    2'b00: if (Funct[5]) controls = 11'b00001010011;
+    2'b00: if (Funct[5]) controls = 12'b000010100110;
            // Data-processing register
-           else controls = 11'b00000010010;
+           else controls = 12'b000000100101;
            // LDR
-    2'b01: if (Funct[0]) controls = 11'b00011110000;
+    2'b01: if (Funct[0]) controls = 12'b000111100000;
            // STR
-           else controls = 11'b10011101000;
+           else controls = 12'b100111010000;
            // B
-    2'b10: controls = 11'b01101000100;
+    2'b10: controls = 12'b011010001000;
     // Unimplemented
     default: begin
-      controls = 11'bx;
+      controls = 12'bx;
       mainValid = 0; // combi only
     end
   endcase
 end
 
 assign {RegSrc, ImmSrc, ALUSrc, MemtoReg,
-  RegW, MemW, Branch, ALUOp, ImmShift} = controls;
+  RegW, MemW, Branch, ALUOp, DPShift} = controls;
 
-assign ShiftType = ImmShift ? 3'b1_11 : 3'b1_xx;
-assign ShiftAmt = ImmShift ? {Shift[7:4], 1'b0} : 5'b00000;
+mux3 #(3)shtypemux(3'b1_00, {1'b1,Shift[2:1]}, 3'b1_11, DPShift, ShiftType);
+//assign ShiftType = ImmShift ? 3'b1_11 : {1'b1,Shift[2:1]};
+
+mux3 #(5)shamtmux(5'b00000, Shift[7:3], {Shift[7:4], 1'b0}, DPShift, ShiftAmt);
+//assign ShiftAmt = ImmShift ? {Shift[7:4], 1'b0} : Shift[7:3];
 
 // ALU Decoder
 /*

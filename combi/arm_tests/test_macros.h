@@ -110,6 +110,14 @@ test_ ## testnum: \
       inst r1, r2, shift; \
     )
 
+#define TEST_TST_OVERWRITE( testnum, inst, result, val1, val2 ) \
+    TEST_CASE( testnum, r0, result, \
+      ldr  r0, =result; \
+      ldr  r1, =val1; \
+      ldr  r2, =val2; \
+      inst r1, r2; \
+    )
+
 #define TEST_PASSFAIL \
         ands TESTNUM, TESTNUM; \
         bne pass; \

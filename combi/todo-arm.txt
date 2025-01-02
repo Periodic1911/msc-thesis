@@ -1,6 +1,8 @@
 For test:
-[] MOV immediate
-[] Pre shift MOV (rotate *right* 2*op[11:0])
+[x] MOV immediate
+[x] Pre shift MOV (rotate *right* 2*op[11:0])
+[] tst
+[] mvn
 
 Multi cycle (for real):
 Having an extra write port and more forwarding logic and anothe ALUResult wire is too much for only a few instructions
@@ -43,20 +45,21 @@ New ALU ops
 [/] Bit clear
 [/] Not
 [/] Reverse subtract
+[] ADD/SUB w/ Carry
 [] Move to status register
 [] Move from status register
 [] Mult low
 [] Mult High
 [] Pre-shifter
-  [] mux shift to Op2
-  [] shift left
-  [] shift right
-  [] shift right arith
-  [] rotate right
-  [] 11:(7/8) shift amount
+  [x] mux shift to Op2
+  [x] shift left
+  [x] shift right
+  [x] shift right arith
+  [x] rotate right
+  [x] 11:(7/8) shift amount
 
 New Immediates
-[] 8-bit pre-shift imm
+[x] 8-bit pre-shift imm
 [] 8-bit ldrhb imm
 
 Multi-cycle:

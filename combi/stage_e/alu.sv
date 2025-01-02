@@ -1,6 +1,6 @@
 module alu(
   input logic armE,
-  input logic [3:0] ALUControlE,
+  input logic [4:0] ALUControlE,
   input logic [31:0] Op1E, Op2E,
   input logic [2:0] ShiftTypeE,
   input logic [4:0] ShiftAmtE,
@@ -31,23 +31,24 @@ barrel_shift bs(shiftInput, shiftAmount, shiftOp, shiftResult);
 logic [31:0] Op2Shifted;
 mux2 #(32)armmux(Op2E,shiftResult,armE,Op2Shifted);
 
-
 logic rv_ge = (addResult[31] == overflow);
 
 always_comb
   case(ALUControlE)
-    4'b0000: ALUResultE = addResult; // add
-    4'b0001: ALUResultE = addResult; // sub
-    4'b0010: ALUResultE = Op1E & Op2Shifted; // and
-    4'b0011: ALUResultE = Op1E | Op2Shifted; // or
-    4'b0100: ALUResultE = Op1E ^ Op2Shifted; // xor
+    5'b00000: ALUResultE = addResult; // add
+    5'b00001: ALUResultE = addResult; // sub
+    5'b00010: ALUResultE = Op1E & Op2Shifted; // and
+    5'b00011: ALUResultE = Op1E | Op2Shifted; // or
+    5'b00100: ALUResultE = Op1E ^ Op2Shifted; // xor
     // RISC-V only
-    4'b0101: ALUResultE = {31'b0, ~rv_ge}; // slt
-    4'b0111: ALUResultE = {31'b0, carry}; // sltu
-    4'b0110: ALUResultE = Op2Shifted; // forward immediate
-    4'b1000: ALUResultE = shiftResult; // sll
-    4'b1001: ALUResultE = shiftResult; // srl
-    4'b1010: ALUResultE = shiftResult; // sra
+    5'b00101: ALUResultE = {31'b0, ~rv_ge}; // slt
+    5'b00111: ALUResultE = {31'b0, carry}; // sltu
+    5'b00110: ALUResultE = Op2Shifted; // forward immediate
+    5'b01000: ALUResultE = shiftResult; // sll
+    5'b01001: ALUResultE = shiftResult; // srl
+    5'b01010: ALUResultE = shiftResult; // sra
+    // ARM only
+    5'b10111: ALUResultE = ~Op2Shifted; // mvn
     default: ALUResultE = 32'hxxxxxxxx; /// ???
   endcase
 

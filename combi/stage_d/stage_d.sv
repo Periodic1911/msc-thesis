@@ -19,7 +19,7 @@ module stage_d(
   output logic [1:0] BranchD,
   output logic [1:0] MemSizeD,
   output logic MemSignedD,
-  output logic [3:0] ALUControlD,
+  output logic [4:0] ALUControlD,
   output logic [4:0] ShiftAmtD, // ARM only
   output logic [2:0] ShiftTypeD, // ARM only
   output logic PCSrcD, // ARM only

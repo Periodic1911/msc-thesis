@@ -27,7 +27,7 @@ logic [1:0] ALUSrcD;
 logic [1:0] BranchD; // bit 0 RISC-V only
 logic [1:0] MemSizeD;
 logic MemSignedD;
-logic [3:0] ALUControlD;
+logic [4:0] ALUControlD;
 logic [4:0] ShiftAmtD; // ARM only
 logic [2:0] ShiftTypeD; // ARM only
 logic PCSrcD; // ARM only

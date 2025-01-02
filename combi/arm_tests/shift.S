@@ -1,20 +1,11 @@
 # See LICENSE for license details.
 
-#*****************************************************************************
-# shift.S
-#-----------------------------------------------------------------------------
-
 #include "arm_test.h"
 #include "test_macros.h"
 
 ARMTEST_ARMV4
 ARMTEST_CODE_BEGIN
 
-/*
-  TEST_IMM_OP( 1,  add, 0, 0, 0 );
-  TEST_IMM_OP( 2,  add, 2, 1, 1 );
-  TEST_RR_OP( 3,  add, 2, 1, 1 );
-*/
   TEST_RR_SHIFT_OP( 1,  add, 3, 1, 1, LSL #1 );
   TEST_RR_SHIFT_OP( 2,  add, 0x80000011, 0x11, 1, ROR #1 );
   TEST_RR_SHIFT_OP( 3,  orr, 0xFF000000, 0x00000000, 0xF0000000, ASR #4 );

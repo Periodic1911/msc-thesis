@@ -40,15 +40,16 @@ always_comb
     5'b00010: ALUResultE = Op1E & Op2Shifted; // and
     5'b00011: ALUResultE = Op1E | Op2Shifted; // or
     5'b00100: ALUResultE = Op1E ^ Op2Shifted; // xor
+    5'b00110: ALUResultE = Op2Shifted; // forward immediate
     // RISC-V only
     5'b00101: ALUResultE = {31'b0, ~rv_ge}; // slt
     5'b00111: ALUResultE = {31'b0, carry}; // sltu
-    5'b00110: ALUResultE = Op2Shifted; // forward immediate
     5'b01000: ALUResultE = shiftResult; // sll
     5'b01001: ALUResultE = shiftResult; // srl
     5'b01010: ALUResultE = shiftResult; // sra
     // ARM only
     5'b10111: ALUResultE = ~Op2Shifted; // mvn
+    5'b10000: ALUResultE = Op1E & ~Op2Shifted; // bic
     default: ALUResultE = 32'hxxxxxxxx; /// ???
   endcase
 

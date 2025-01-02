@@ -330,17 +330,6 @@ mux3 #(5)shamtmux(5'b00000, Shift[7:3], {Shift[7:4], 1'b0}, DPShift, ShiftAmt);
 
 // ALU Decoder
 /*
-    2'b00: ALUControl = 4'b0000; // addition
-    2'b01: ALUControl = 4'b0001; // subtraction
-    2'b11: ALUControl = 4'b0110; // lui
-      3'b001:  ALUControl = 4'b1000; // sll, slli
-               ALUControl = 4'b1010; // sra, srai
-               ALUControl = 4'b1001; // srl, srli
-      3'b010:  ALUControl = 4'b0101; // slt, slti
-      3'b011:  ALUControl = 4'b0101; // sltu, sltiu
-      3'b100:  ALUControl = 4'b0100; // xor, xori
-      3'b110:  ALUControl = 4'b0011; // or, ori
-      3'b111:  ALUControl = 4'b0010; // and, andi
       4'b0010: ALUControl = 5'b00001; // SUB
       4'b0011: ALUControl = 5'b10100; // RSB
       4'b0100: ALUControl = 5'b00000; // ADD

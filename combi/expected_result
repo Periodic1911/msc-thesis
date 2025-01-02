@@ -1,6 +1,12 @@
 arm_tests/DDCA	OK
+arm_tests/bic	OK
+arm_tests/cmn	OK
+arm_tests/cmp	OK
+arm_tests/mvn	OK
 arm_tests/shift	OK
 arm_tests/simpl	OK
+arm_tests/teq	OK
+arm_tests/tst	OK
 rv_tests/DDCA	OK
 rv_tests/add	OK
 rv_tests/addi	OK

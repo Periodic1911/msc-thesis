@@ -65,6 +65,15 @@ test_ ## testnum: \
       inst r1, r1, r2, shift; \
     )
 
+#define TEST_RR_CARRY( testnum, inst, result, val1, val2 ) \
+    TEST_CASE( testnum, r1, result, \
+      ldr  r1, =val1; \
+      ldr  r2, =val2; \
+      ldr  r3, =0xFFFFFFFF; \
+      adds r3, r3, 1; \
+      inst r1, r1, r2; \
+    )
+
 #-----------------------------------------------------------------------
 # Tests for move-type ops (MVN, MOV)
 #-----------------------------------------------------------------------

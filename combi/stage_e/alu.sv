@@ -4,6 +4,7 @@ module alu(
   input logic [31:0] Op1E, Op2E,
   input logic [2:0] ShiftTypeE,
   input logic [4:0] ShiftAmtE,
+  input logic [3:0] FlagsE, // ARM only
 
   output logic [31:0] ALUResultE,
   output logic [3:0] ALUFlags
@@ -12,8 +13,9 @@ module alu(
 logic [31:0] addResult;
 
 add_sub as(.a(Op1E), .b(Op2Shifted), .q(addResult),
-  .add(~{(ALUControlE[4]&ALUControlE[2]), ALUControlE[0]}), .cOut(carry),
-  .overflow(overflow)
+  .add(~{(ALUControlE[4]&ALUControlE[2]), ALUControlE[0]}),
+  .cIn(FlagsE[1]), .useCarry(ALUControlE[4] & ALUControlE[1]),
+  .cOut(carry), .overflow(overflow)
   );
 
 logic [31:0] shiftInput, shiftResult;
@@ -52,6 +54,9 @@ always_comb
     5'b10111: ALUResultE = ~Op2Shifted; // mvn
     5'b10000: ALUResultE = Op1E & ~Op2Shifted; // bic
     5'b10100: ALUResultE = addResult; // rsb
+    5'b10010: ALUResultE = addResult; // adc
+    5'b10011: ALUResultE = addResult; // sbc
+    5'b10110: ALUResultE = addResult; // rsc
     default: ALUResultE = 32'hxxxxxxxx; /// ???
   endcase
 
@@ -69,6 +74,7 @@ endmodule
 module add_sub(
   input logic [31:0] a, b,
   input logic [1:0] add,
+  input logic useCarry, cIn,
   output logic [31:0] q,
   output logic cOut,
   output logic overflow // ARM only
@@ -77,7 +83,8 @@ module add_sub(
 logic [31:0] b_inv, a_inv;
 assign b_inv = add[0] ? b : ~b;
 assign a_inv = add[1] ? a : ~a;
-logic carry_in = ~(&add);
+logic carry_in;
+mux2 #(1)carrymux(~(&add), cIn ^ ~(&add), useCarry, carry_in);
 logic carry_out;
 
 assign {carry_out, q} = a_inv + b_inv + {31'b0, carry_in};

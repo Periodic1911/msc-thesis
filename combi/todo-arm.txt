@@ -1,8 +1,8 @@
 For test:
 [x] MOV immediate
 [x] Pre shift MOV (rotate *right* 2*op[11:0])
-[] tst
-[] mvn
+[x] tst
+[x] mvn
 
 Multi cycle (for real):
 Having an extra write port and more forwarding logic and anothe ALUResult wire is too much for only a few instructions

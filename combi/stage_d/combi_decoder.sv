@@ -289,19 +289,28 @@ logic mainValid, aluValid; // combi only
 assign ARM_valid = mainValid & aluValid; // combi only
 
 // Main Decoder
+// RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift
 always_comb begin
   mainValid = 1; // combi only
   case(Op)
            // Data-processing immediate
-    2'b00: if (Funct[5]) controls = 12'b000010100110;
+    2'b00: if (Funct[5])
+             if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
+                         controls = 12'b00_00_1_0_0_0_0_1_10;
+             else
+                         controls = 12'b00_00_1_0_1_0_0_1_10;
            // Data-processing register
-           else controls = 12'b000000100101;
+           else
+             if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
+                         controls = 12'b00_00_0_0_0_0_0_1_01;
+             else
+                         controls = 12'b00_00_0_0_1_0_0_1_01;
            // LDR
-    2'b01: if (Funct[0]) controls = 12'b000111100000;
+    2'b01: if (Funct[0]) controls = 12'b00_01_1_1_1_0_0_0_00;
            // STR
-           else controls = 12'b100111010000;
+           else          controls = 12'b10_01_1_1_0_1_0_0_00;
            // B
-    2'b10: controls = 12'b011010001000;
+    2'b10:               controls = 12'b01_10_1_0_0_0_1_0_00;
     // Unimplemented
     default: begin
       controls = 12'bx;

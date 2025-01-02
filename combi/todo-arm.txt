@@ -42,8 +42,8 @@ Rm *high Rs
 RdHi +carry Fwd -> RdHi
 
 New ALU ops
-[/] Bit clear
-[/] Not
+[x] Bit clear
+[x] Not
 [/] Reverse subtract
 [] ADD/SUB w/ Carry
 [] Move to status register

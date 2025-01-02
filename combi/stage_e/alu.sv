@@ -11,7 +11,8 @@ module alu(
 
 logic [31:0] addResult;
 
-add_sub as(.a(Op1E), .b(Op2Shifted), .q(addResult), .add(~ALUControlE[0]), .cOut(carry),
+add_sub as(.a(Op1E), .b(Op2Shifted), .q(addResult),
+  .add(~{(ALUControlE[4]&ALUControlE[2]), ALUControlE[0]}), .cOut(carry),
   .overflow(overflow)
   );
 
@@ -50,6 +51,7 @@ always_comb
     // ARM only
     5'b10111: ALUResultE = ~Op2Shifted; // mvn
     5'b10000: ALUResultE = Op1E & ~Op2Shifted; // bic
+    5'b10100: ALUResultE = addResult; // rsb
     default: ALUResultE = 32'hxxxxxxxx; /// ???
   endcase
 
@@ -66,18 +68,19 @@ endmodule
 /* Combined adder-subtractor with one carry chain */
 module add_sub(
   input logic [31:0] a, b,
-  input logic add,
+  input logic [1:0] add,
   output logic [31:0] q,
   output logic cOut,
   output logic overflow // ARM only
 );
 
-logic [31:0] b_inv;
-assign b_inv = add ? b : ~b;
-logic carry_in = ~add;
+logic [31:0] b_inv, a_inv;
+assign b_inv = add[0] ? b : ~b;
+assign a_inv = add[1] ? a : ~a;
+logic carry_in = ~(&add);
 logic carry_out;
 
-assign {carry_out, q} = a + b_inv + {31'b0, carry_in};
+assign {carry_out, q} = a_inv + b_inv + {31'b0, carry_in};
 xor(cOut, carry_out, carry_in);
 assign overflow = (~q[31] & a[31] & b_inv[31]) |
                   ( q[31] &~a[31] &~b_inv[31]);

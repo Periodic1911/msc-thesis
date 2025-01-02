@@ -13,7 +13,7 @@ test_ ## testnum: \
     code; \
     ldr  r11, =correctval; \
     ldr  TESTNUM, =testnum; \
-    subs testreg, r11; \
+    cmp testreg, r11; \
     bne fail;
 
 #define TEST_CASE_BRANCH( testnum, cond, code... ) \
@@ -119,7 +119,7 @@ test_ ## testnum: \
     )
 
 #define TEST_PASSFAIL \
-        ands TESTNUM, TESTNUM; \
+        tst TESTNUM, TESTNUM; \
         bne pass; \
 fail: \
         ARMTEST_FAIL; \

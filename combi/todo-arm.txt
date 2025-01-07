@@ -40,7 +40,7 @@ Rn -> (Rd)
 
 [] MLA
 Rm *low Rs
-Rn + (Fwd)
+Rn + (Fwd) -> Rd
 
 [] MULL
 Rm *low Rs -> RdLo

@@ -65,11 +65,11 @@ ldm ldmshifter(clk, instr[15:0], ldmReg, ldmStall, RegSrcD[2], FlushE);
 
 logic [31:0] PCPlus8D = PCPlus4F;
 logic [2:0] ImmSrcD;
-logic [2:0] RegSrcD; // ARM only
+logic [3:0] RegSrcD; // ARM only
 
 combi_decoder dec(.*);
 
-assign RdD = (armD) ? {1'b0, RegSrcD[2] ? ldmReg : instr[15:12]} : instr[11:7];
+assign RdD = (armD) ? {1'b0, RegSrcD[2] ? ldmReg : RegSrcD[3] ? instr[19:16] : instr[15:12]} : instr[11:7];
 
 logic [4:0] ra1, ra2;
 always_comb

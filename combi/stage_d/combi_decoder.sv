@@ -17,7 +17,7 @@ module combi_decoder(input logic clk, rst,
                      input logic FlushE,
                      output logic PCSrcD,
                      output logic [1:0] FlagWriteD,
-                     output logic [2:0] RegSrcD,
+                     output logic [3:0] RegSrcD,
                      output logic [4:0] ShiftAmtD,
                      output logic [2:0] ShiftTypeD,
                      output logic StallFD,
@@ -71,7 +71,7 @@ logic PCSrc, ARM_RegWrite, ARM_MemWrite, MemtoReg, ARM_ALUSrc, ARM_Branch;
 logic [1:0] ARM_MemSize;
 logic ARM_MemSigned;
 logic [1:0] ARM_ImmSrc;
-logic [2:0] RegSrc;
+logic [3:0] RegSrc;
 logic [4:0] ARM_ALUControl;
 logic [7:0] Shift;
 logic [4:0] ShiftAmt;
@@ -119,7 +119,7 @@ always_comb
     /* Don't care about ARM outputs */
     PCSrcD = 1'bx;
     FlagWriteD = 2'bx;
-    RegSrcD = 3'b0;
+    RegSrcD = 4'b0;
     ShiftAmtD = 5'b0; // Don't want to shift operand2
     ShiftTypeD = 3'bx;
     StallFD = 1'b0; // Don't want to stall F stage
@@ -286,7 +286,7 @@ module arm_decoder(input logic clk, rst,
                    output logic [1:0] MemSize,
                    output logic MemSigned,
                    output logic [1:0] ImmSrc,
-                   output logic [2:0] RegSrc,
+                   output logic [3:0] RegSrc,
                    output logic [4:0] ShiftAmt,
                    output logic [2:0] ShiftType,
                    output logic ARM_StallF,
@@ -299,7 +299,7 @@ module arm_decoder(input logic clk, rst,
 assign MemSigned = 0;
 assign MemSize = 2'b10;
 
-logic [19:0] controls;
+logic [20:0] controls;
 logic [2:0] ALUOp;
 logic [1:0] DPShift;
 logic mainValid, aluValid; // combi only
@@ -317,33 +317,33 @@ always_comb begin
            // Data-processing immediate
     3'b00?: if (Funct[5])
              if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
-                          controls = 20'b000_00_1_0_0_0_0_001_10_0_00_00;
+                          controls = 21'b0000_00_1_0_0_0_0_001_10_0_00_00;
              else
-                          controls = 20'b000_00_1_0_1_0_0_001_10_0_00_00;
+                          controls = 21'b0000_00_1_0_1_0_0_001_10_0_00_00;
            // Data-processing register
            else
              if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
-                          controls = 20'b000_00_0_0_0_0_0_001_01_0_00_00;
+                          controls = 21'b0000_00_0_0_0_0_0_001_01_0_00_00;
              else
-                          controls = 20'b000_00_0_0_1_0_0_001_01_0_00_00;
+                          controls = 21'b0000_00_0_0_1_0_0_001_01_0_00_00;
            // LDR
-    3'b01?: if (Funct[0]) controls = 20'b000_01_1_1_1_0_0_000_00_0_00_00;
+    3'b01?: if (Funct[0]) controls = 21'b0000_01_1_1_1_0_0_000_00_0_00_00;
            // STR
-           else           controls = 20'b010_01_1_1_0_1_0_000_00_0_00_00;
+           else           controls = 21'b0010_01_1_1_0_1_0_000_00_0_00_00;
            // B
-    3'b101:               controls = 20'b001_10_1_0_0_0_1_000_00_0_00_00;
+    3'b101:               controls = 21'b0001_10_1_0_0_0_1_000_00_0_00_00;
            // LDM
     3'b100: case(uCnt)
-            2'b00:        controls = 20'b000_01_0_1_1_0_0_000_00_1_01_00;
+            2'b00:        controls = 21'b0000_01_0_1_1_0_0_010_00_1_01_00;
             2'b01: if(ldmStall)
-                          controls = 20'b100_11_1_0_1_0_0_000_00_1_01_01;
+                          controls = 21'b0100_11_1_0_1_0_0_000_00_1_01_01;
                    else
-                          controls = 20'b100_11_1_0_0_0_0_000_00_1_10_01;
-            default:      controls = 20'b000_00_0_0_0_0_0_000_00_0_00_00;
+                          controls = 21'b0100_11_1_0_0_0_0_000_00_1_10_01;
+            default:      controls = 21'b1000_11_0_0_0_0_0_000_00_0_00_01;
             endcase
     // Unimplemented
     default: begin
-      controls = 20'bx;
+      controls = 21'bx;
       mainValid = 0; // combi only
     end
   endcase

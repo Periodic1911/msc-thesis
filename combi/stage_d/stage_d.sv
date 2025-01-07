@@ -59,21 +59,24 @@ logic wasNotFlushed = 1;
 assign armD = 0;
 `endif `endif
 
+logic [3:0] ldmReg;
+logic ldmStall;
+ldm ldmshifter(clk, instr[15:0], ldmReg, ldmStall, RegSrcD[2]);
 
 logic [31:0] PCPlus8D = PCPlus4F;
 logic [2:0] ImmSrcD;
-logic [1:0] RegSrcD; // ARM only
+logic [2:0] RegSrcD; // ARM only
 
 combi_decoder dec(.*);
 
-assign RdD = (armD) ? {1'b0, instr[15:12]} : instr[11:7];
+assign RdD = (armD) ? {1'b0, RegSrcD[2] ? ldmReg : instr[15:12]} : instr[11:7];
 
 logic [4:0] ra1, ra2;
 always_comb
   if(armD) begin
     // Mux ARM RegSrc
-    ra1 = RegSrcD[0] ? 5'd15 : {1'b0, instr[19:16]};
-    ra2 = {1'b0, RegSrcD[1] ? RdD[3:0] : instr[3:0]};
+    ra1 = {1'b0, RegSrcD[0] ? 4'd15 : instr[19:16]};
+    ra2 = {1'b0, RegSrcD[2] ? ldmReg : RegSrcD[1] ? RdD[3:0] : instr[3:0]};
   end else begin
     // RISC-V assignment
     ra1 = instr[19:15];

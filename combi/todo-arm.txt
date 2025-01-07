@@ -9,7 +9,7 @@ Having an extra write port and more forwarding logic and anothe ALUResult wire i
 -[x] Forward Op1 / Op2
 -[x] Stall Fetch
 -[x] Microinst counter (2 bit)
--[] LDM stall (also halts uinst counter)
+-[x] LDM stall (also halts uinst counter)
 -[x] Force immediate 4
 
 [] Shift with register
@@ -26,10 +26,10 @@ Rn -> (Rd)
 ... Fwd + (-Imm(4)) -> (Rd)
 (Write back) (Fwd) -> Rn
 (Write back post inc) (Fwd) + (-Imm(4)) -> Rn
-  [] Bit selector
-  [] Output current bit
-  [] Output stall
-  [] Enable input for stall (regsrc)
+  [x] Bit selector
+  [x] Output current bit
+  [x] Output stall
+  [x] Enable input for stall (regsrc)
 
 [] MLA
 Rm *low Rs

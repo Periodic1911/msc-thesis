@@ -13,9 +13,10 @@ module combi_decoder(input logic clk, rst,
                      output logic [3:0] CondD,
 
                      /* ARM only */
+                     input logic ldmStall,
                      output logic PCSrcD,
                      output logic [1:0] FlagWriteD,
-                     output logic [1:0] RegSrcD,
+                     output logic [2:0] RegSrcD,
                      output logic [4:0] ShiftAmtD,
                      output logic [2:0] ShiftTypeD,
                      output logic StallFD,
@@ -68,7 +69,8 @@ logic [1:0] FlagW;
 logic PCSrc, ARM_RegWrite, ARM_MemWrite, MemtoReg, ARM_ALUSrc, ARM_Branch;
 logic [1:0] ARM_MemSize;
 logic ARM_MemSigned;
-logic [1:0] ARM_ImmSrc, RegSrc;
+logic [1:0] ARM_ImmSrc;
+logic [2:0] RegSrc;
 logic [4:0] ARM_ALUControl;
 logic [7:0] Shift;
 logic [4:0] ShiftAmt;
@@ -116,7 +118,7 @@ always_comb
     /* Don't care about ARM outputs */
     PCSrcD = 1'bx;
     FlagWriteD = 2'bx;
-    RegSrcD = 2'bx;
+    RegSrcD = 3'b0;
     ShiftAmtD = 5'b0; // Don't want to shift operand2
     ShiftTypeD = 3'bx;
     StallFD = 1'b0; // Don't want to stall F stage
@@ -273,6 +275,7 @@ module arm_decoder(input logic clk, rst,
                    input logic [5:0] Funct,
                    input logic [7:0] Shift,
                    input logic [3:0] Rd,
+                   input logic ldmStall,
                    output logic ARM_valid, // combi only
                    output logic Branch,
                    output logic [1:0] FlagW,
@@ -280,7 +283,8 @@ module arm_decoder(input logic clk, rst,
                    output logic MemtoReg, ALUSrc,
                    output logic [1:0] MemSize,
                    output logic MemSigned,
-                   output logic [1:0] ImmSrc, RegSrc,
+                   output logic [1:0] ImmSrc,
+                   output logic [2:0] RegSrc,
                    output logic [4:0] ShiftAmt,
                    output logic [2:0] ShiftType,
                    output logic ARM_StallF,
@@ -293,7 +297,7 @@ module arm_decoder(input logic clk, rst,
 assign MemSigned = 0;
 assign MemSize = 2'b10;
 
-logic [16:0] controls;
+logic [17:0] controls;
 logic ALUOp;
 logic [1:0] DPShift;
 logic mainValid, aluValid; // combi only
@@ -311,30 +315,33 @@ always_comb begin
            // Data-processing immediate
     3'b00?: if (Funct[5])
              if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
-                          controls = 17'b00_00_1_0_0_0_0_1_10_0_00_00;
+                          controls = 18'b000_00_1_0_0_0_0_1_10_0_00_00;
              else
-                          controls = 17'b00_00_1_0_1_0_0_1_10_0_00_00;
+                          controls = 18'b000_00_1_0_1_0_0_1_10_0_00_00;
            // Data-processing register
            else
              if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
-                          controls = 17'b00_00_0_0_0_0_0_1_01_0_00_00;
+                          controls = 18'b000_00_0_0_0_0_0_1_01_0_00_00;
              else
-                          controls = 17'b00_00_0_0_1_0_0_1_01_0_00_00;
+                          controls = 18'b000_00_0_0_1_0_0_1_01_0_00_00;
            // LDR
-    3'b01?: if (Funct[0]) controls = 17'b00_01_1_1_1_0_0_0_00_0_00_00;
+    3'b01?: if (Funct[0]) controls = 18'b000_01_1_1_1_0_0_0_00_0_00_00;
            // STR
-           else           controls = 17'b10_01_1_1_0_1_0_0_00_0_00_00;
+           else           controls = 18'b010_01_1_1_0_1_0_0_00_0_00_00;
            // B
-    3'b101:               controls = 17'b01_10_1_0_0_0_1_0_00_0_00_00;
+    3'b101:               controls = 18'b001_10_1_0_0_0_1_0_00_0_00_00;
            // LDM
     3'b100: case(uCnt)
-            2'b00:        controls = 17'b00_00_0_0_0_0_0_0_00_1_01_00;
-            2'b01:        controls = 17'b00_11_1_0_0_0_0_0_00_1_10_01;
-            default:      controls = 17'b00_00_0_0_0_0_0_0_00_0_00_00;
+            2'b00:        controls = 18'b000_00_0_0_0_0_0_0_00_1_01_00;
+            2'b01: if(ldmStall)
+                          controls = 18'b100_11_1_0_0_0_0_0_00_1_01_01;
+                   else
+                          controls = 18'b100_11_1_0_0_0_0_0_00_1_10_01;
+            default:      controls = 18'b000_00_0_0_0_0_0_0_00_0_00_00;
             endcase
     // Unimplemented
     default: begin
-      controls = 17'bx;
+      controls = 18'bx;
       mainValid = 0; // combi only
     end
   endcase

@@ -1,4 +1,5 @@
-module combi_decoder(input logic [31:0] instr,
+module combi_decoder(input logic clk, rst,
+                     input logic [31:0] instr,
                      input logic armIn,
                      input logic wasNotFlushed,
                      output logic RegWriteD,
@@ -17,6 +18,8 @@ module combi_decoder(input logic [31:0] instr,
                      output logic [1:0] RegSrcD,
                      output logic [4:0] ShiftAmtD,
                      output logic [2:0] ShiftTypeD,
+                     output logic StallFD,
+                     output logic [1:0] FwdD,
 
 `ifdef ARM `ifdef RISCV
                      output logic armD,
@@ -58,7 +61,7 @@ rv_maindec rv_mdec(.*, .op(RV_op), .MemSigned(RV_MemSigned), .MemSize(RV_MemSize
 assign RV_valid = RV_mainValid & RV_ALUValid; // combi only
 
 /* ARM */
-logic [1:0] ARM_Op;
+logic [2:0] ARM_Op;
 logic [5:0] Funct;
 logic [3:0] Rd;
 logic [1:0] FlagW;
@@ -70,10 +73,12 @@ logic [4:0] ARM_ALUControl;
 logic [7:0] Shift;
 logic [4:0] ShiftAmt;
 logic [2:0] ShiftType;
+logic [1:0] uCnt;
+logic ARM_StallF;
 logic ARM_valid; // combi only
 
 assign {ARM_Op, Funct, Rd, Shift} = {
-  instr[27:26],
+  instr[27:25],
   instr[25:20],
   instr[15:12],
   instr[11:4] };
@@ -105,6 +110,7 @@ always_comb
     PCSrcD = PCSrc;
     FlagWriteD = FlagW;
     RegSrcD = RegSrc;
+    StallFD = ARM_StallF;
 
   end else begin /* RISC-V */
     /* Don't care about ARM outputs */
@@ -113,6 +119,7 @@ always_comb
     RegSrcD = 2'bx;
     ShiftAmtD = 5'b0; // Don't want to shift operand2
     ShiftTypeD = 3'bx;
+    StallFD = 1'b0; // Don't want to stall F stage
 
     /* Shared */
     RegWriteD = RV_RegWrite;
@@ -261,7 +268,8 @@ end
 
 endmodule
 
-module arm_decoder(input logic [1:0] Op,
+module arm_decoder(input logic clk, rst,
+                   input logic [2:0] Op,
                    input logic [5:0] Funct,
                    input logic [7:0] Shift,
                    input logic [3:0] Rd,
@@ -275,52 +283,66 @@ module arm_decoder(input logic [1:0] Op,
                    output logic [1:0] ImmSrc, RegSrc,
                    output logic [4:0] ShiftAmt,
                    output logic [2:0] ShiftType,
+                   output logic ARM_StallF,
+                   output logic [1:0] uCnt,
+                   output logic [1:0] FwdD,
                    output logic [4:0] ALUControl);
+
 
 // TODO add to decoder controls
 assign MemSigned = 0;
 assign MemSize = 2'b10;
 
-logic [11:0] controls;
+logic [16:0] controls;
 logic ALUOp;
 logic [1:0] DPShift;
 logic mainValid, aluValid; // combi only
 
 assign ARM_valid = mainValid & aluValid; // combi only
 
+logic [1:0] uCnt_n;
+flopr #(2) microinst_reg(clk, rst, uCnt_n, uCnt);
+
 // Main Decoder
-// RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift
+// RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
 always_comb begin
   mainValid = 1; // combi only
-  case(Op)
+  casez(Op)
            // Data-processing immediate
-    2'b00: if (Funct[5])
+    3'b00?: if (Funct[5])
              if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
-                         controls = 12'b00_00_1_0_0_0_0_1_10;
+                          controls = 17'b00_00_1_0_0_0_0_1_10_0_00_00;
              else
-                         controls = 12'b00_00_1_0_1_0_0_1_10;
+                          controls = 17'b00_00_1_0_1_0_0_1_10_0_00_00;
            // Data-processing register
            else
              if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
-                         controls = 12'b00_00_0_0_0_0_0_1_01;
+                          controls = 17'b00_00_0_0_0_0_0_1_01_0_00_00;
              else
-                         controls = 12'b00_00_0_0_1_0_0_1_01;
+                          controls = 17'b00_00_0_0_1_0_0_1_01_0_00_00;
            // LDR
-    2'b01: if (Funct[0]) controls = 12'b00_01_1_1_1_0_0_0_00;
+    3'b01?: if (Funct[0]) controls = 17'b00_01_1_1_1_0_0_0_00_0_00_00;
            // STR
-           else          controls = 12'b10_01_1_1_0_1_0_0_00;
+           else           controls = 17'b10_01_1_1_0_1_0_0_00_0_00_00;
            // B
-    2'b10:               controls = 12'b01_10_1_0_0_0_1_0_00;
+    3'b101:               controls = 17'b01_10_1_0_0_0_1_0_00_0_00_00;
+           // LDM
+    3'b100: case(uCnt)
+            2'b00:        controls = 17'b00_00_0_0_0_0_0_0_00_1_01_00;
+            2'b01:        controls = 17'b00_11_1_0_0_0_0_0_00_1_10_01;
+            default:      controls = 17'b00_00_0_0_0_0_0_0_00_0_00_00;
+            endcase
     // Unimplemented
     default: begin
-      controls = 12'bx;
+      controls = 17'bx;
       mainValid = 0; // combi only
     end
   endcase
 end
 
 assign {RegSrc, ImmSrc, ALUSrc, MemtoReg,
-  RegW, MemW, Branch, ALUOp, DPShift} = controls;
+  RegW, MemW, Branch, ALUOp, DPShift,
+  ARM_StallF, uCnt_n, FwdD} = controls;
 
 mux3 #(3)shtypemux(3'b1_00, {1'b1,Shift[2:1]}, 3'b1_11, DPShift, ShiftType);
 //assign ShiftType = ImmShift ? 3'b1_11 : {1'b1,Shift[2:1]};

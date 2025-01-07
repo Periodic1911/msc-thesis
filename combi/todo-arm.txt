@@ -6,11 +6,11 @@ For test:
 
 Multi cycle (for real):
 Having an extra write port and more forwarding logic and anothe ALUResult wire is too much for only a few instructions
-[] Forward Op1 / Op2
-[] Stall Fetch
-[] Microinst counter (2 bit)
-[] LDM stall (also halts uinst counter)
-[] Force immediate 4
+-[x] Forward Op1 / Op2
+-[x] Stall Fetch
+-[x] Microinst counter (2 bit)
+-[] LDM stall (also halts uinst counter)
+-[x] Force immediate 4
 
 [] Shift with register
 Rm >> Rs
@@ -26,6 +26,10 @@ Rn -> (Rd)
 ... Fwd + (-Imm(4)) -> (Rd)
 (Write back) (Fwd) -> Rn
 (Write back post inc) (Fwd) + (-Imm(4)) -> Rn
+  [] Bit selector
+  [] Output current bit
+  [] Output stall
+  [] Enable input for stall (regsrc)
 
 [] MLA
 Rm *low Rs
@@ -44,8 +48,8 @@ RdHi +carry Fwd -> RdHi
 New ALU ops
 [x] Bit clear
 [x] Not
-[/] Reverse subtract
-[] ADD/SUB w/ Carry
+[x] Reverse subtract
+[x] ADD/SUB w/ Carry
 [] Move to status register
 [] Move from status register
 [] Mult low
@@ -57,6 +61,7 @@ New ALU ops
   [x] shift right arith
   [x] rotate right
   [x] 11:(7/8) shift amount
+  [ ] shift by register
 
 New Immediates
 [x] 8-bit pre-shift imm
@@ -66,3 +71,4 @@ Multi-cycle:
 [] Swap (make single cycle, memory units support simulatneous write/read)
 
 Other:
+[] branch with link

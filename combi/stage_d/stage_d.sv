@@ -25,6 +25,9 @@ module stage_d(
   output logic PCSrcD, // ARM only
   output logic [1:0] FlagWriteD, // ARM only
   output logic [3:0] CondD, // ARM only
+  output logic [1:0] FwdD,
+  output logic [1:0] uCnt, // ARM only
+  output logic StallFD, // ARM only
   output logic [1:0] ResultSrcD, // bit 1 RISC-V only
   output logic armD, // combi only
 

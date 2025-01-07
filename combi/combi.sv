@@ -32,7 +32,10 @@ logic [4:0] ShiftAmtD; // ARM only
 logic [2:0] ShiftTypeD; // ARM only
 logic PCSrcD; // ARM only
 logic [1:0] FlagWriteD; // ARM only
-logic [3:0] CondD; // ARM only
+logic [1:0] uCnt; // ARM only
+logic [1:0] FwdD; // ARM only
+logic StallFD; // ARM only
+logic [3:0] CondD;
 logic [1:0] ResultSrcD; // bit 1 RISC-V only
 
 /* execute */
@@ -49,6 +52,7 @@ logic MemSignedE;
 logic [1:0] BranchTakenE; // bit 0 RV only
 logic [31:0] PCTargetE; // RISC-V only
 logic [31:0] ALUResultE;
+logic [1:0] FwdE; // ARM only
 
 logic [4:0] Rs1E, Rs2E;
 logic armE;

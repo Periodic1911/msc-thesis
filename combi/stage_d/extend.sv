@@ -15,6 +15,7 @@ always_comb
       2'b01: immext = {20'b0, instr[11:0]};
       // 24-bit two's complement shifted branch
       2'b10: immext = {{6{instr[23]}}, instr[23:0], 2'b00};
+      2'b11: immext = 32'h00000004;
       default: immext = 32'bx; // undefined
     endcase
   else

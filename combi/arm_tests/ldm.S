@@ -6,7 +6,7 @@
 ARMTEST_ARMV4
 ARMTEST_CODE_BEGIN
 
-  TEST_CASE( 1, r13, 0x1000, ldr r13, =0x1000; ldmfd r13!,{r0,r2,r4,r13} );
+  TEST_CASE( 1, r14, 0x1010, ldr r14, =0x1000; ldmfd r14!,{r0,r2,r5,r13} );
 
   TEST_PASSFAIL;
 

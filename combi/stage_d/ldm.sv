@@ -3,13 +3,14 @@ module ldm(
   input logic [15:0] bits,
   output logic [3:0] current,
   output logic stall,
-  input logic stall_en
+  input logic stall_en, FlushE
 );
 
 logic [15:0] mask, mbits;
 
 always_ff @(posedge clk)
-  if(!(stall && stall_en)) mask <= 16'h0;
+  if(FlushE) mask <= mask;
+  else if(!(stall && stall_en)) mask <= 16'h0;
   else case(current)
     4'h0: mask <= 16'h0001;
     4'h1: mask <= 16'h0003;

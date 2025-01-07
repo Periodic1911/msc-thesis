@@ -14,6 +14,7 @@ module combi_decoder(input logic clk, rst,
 
                      /* ARM only */
                      input logic ldmStall,
+                     input logic FlushE,
                      output logic PCSrcD,
                      output logic [1:0] FlagWriteD,
                      output logic [2:0] RegSrcD,
@@ -276,6 +277,7 @@ module arm_decoder(input logic clk, rst,
                    input logic [7:0] Shift,
                    input logic [3:0] Rd,
                    input logic ldmStall,
+                   input logic FlushE,
                    output logic ARM_valid, // combi only
                    output logic Branch,
                    output logic [1:0] FlagW,
@@ -297,15 +299,15 @@ module arm_decoder(input logic clk, rst,
 assign MemSigned = 0;
 assign MemSize = 2'b10;
 
-logic [17:0] controls;
-logic ALUOp;
+logic [19:0] controls;
+logic [2:0] ALUOp;
 logic [1:0] DPShift;
 logic mainValid, aluValid; // combi only
 
 assign ARM_valid = mainValid & aluValid; // combi only
 
 logic [1:0] uCnt_n;
-flopr #(2) microinst_reg(clk, rst, uCnt_n, uCnt);
+flopenr #(2) microinst_reg(clk, rst, ~FlushE, uCnt_n, uCnt);
 
 // Main Decoder
 // RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
@@ -315,33 +317,33 @@ always_comb begin
            // Data-processing immediate
     3'b00?: if (Funct[5])
              if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
-                          controls = 18'b000_00_1_0_0_0_0_1_10_0_00_00;
+                          controls = 20'b000_00_1_0_0_0_0_001_10_0_00_00;
              else
-                          controls = 18'b000_00_1_0_1_0_0_1_10_0_00_00;
+                          controls = 20'b000_00_1_0_1_0_0_001_10_0_00_00;
            // Data-processing register
            else
              if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
-                          controls = 18'b000_00_0_0_0_0_0_1_01_0_00_00;
+                          controls = 20'b000_00_0_0_0_0_0_001_01_0_00_00;
              else
-                          controls = 18'b000_00_0_0_1_0_0_1_01_0_00_00;
+                          controls = 20'b000_00_0_0_1_0_0_001_01_0_00_00;
            // LDR
-    3'b01?: if (Funct[0]) controls = 18'b000_01_1_1_1_0_0_0_00_0_00_00;
+    3'b01?: if (Funct[0]) controls = 20'b000_01_1_1_1_0_0_000_00_0_00_00;
            // STR
-           else           controls = 18'b010_01_1_1_0_1_0_0_00_0_00_00;
+           else           controls = 20'b010_01_1_1_0_1_0_000_00_0_00_00;
            // B
-    3'b101:               controls = 18'b001_10_1_0_0_0_1_0_00_0_00_00;
+    3'b101:               controls = 20'b001_10_1_0_0_0_1_000_00_0_00_00;
            // LDM
     3'b100: case(uCnt)
-            2'b00:        controls = 18'b000_00_0_0_0_0_0_0_00_1_01_00;
+            2'b00:        controls = 20'b000_01_0_1_1_0_0_000_00_1_01_00;
             2'b01: if(ldmStall)
-                          controls = 18'b100_11_1_0_0_0_0_0_00_1_01_01;
+                          controls = 20'b100_11_1_0_1_0_0_000_00_1_01_01;
                    else
-                          controls = 18'b100_11_1_0_0_0_0_0_00_1_10_01;
-            default:      controls = 18'b000_00_0_0_0_0_0_0_00_0_00_00;
+                          controls = 20'b100_11_1_0_0_0_0_000_00_1_10_01;
+            default:      controls = 20'b000_00_0_0_0_0_0_000_00_0_00_00;
             endcase
     // Unimplemented
     default: begin
-      controls = 18'bx;
+      controls = 20'bx;
       mainValid = 0; // combi only
     end
   endcase
@@ -368,8 +370,9 @@ mux3 #(5)shamtmux(5'b00000, Shift[7:3], {Shift[7:4], 1'b0}, DPShift, ShiftAmt);
 */
 always_comb begin
   aluValid = 1; // combi only
-  if (ALUOp) begin // which DP instr?
-    case(Funct[4:1])
+  case(ALUOp)
+  3'b001: begin
+    case(Funct[4:1]) // which DP instr?
       4'b0000: ALUControl = 5'b00010; // AND
       4'b0001: ALUControl = 5'b00100; // EOR
       4'b0010: ALUControl = 5'b00001; // SUB
@@ -395,10 +398,20 @@ always_comb begin
     FlagW[1] = Funct[0];
     FlagW[0] = Funct[0] &
       (ALUControl == 5'b00000 | ALUControl == 5'b00001);
-  end else begin
+  end
+  3'b000: begin
     ALUControl = 5'b00000; // add for non-DP instructions
     FlagW = 2'b00; // don't update Flags
   end
+  3'b010: begin
+    ALUControl = 5'b11111; // forward Op1
+    FlagW = 2'b00; // don't update Flags
+  end
+  default: begin
+    ALUControl = 5'bx;
+    FlagW = 2'bx;
+  end
+  endcase
 end
 
 // PC Logic

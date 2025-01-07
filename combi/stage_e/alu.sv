@@ -52,6 +52,7 @@ always_comb
     5'b01010: ALUResultE = shiftResult; // sra
     // ARM only
     5'b10111: ALUResultE = ~Op2Shifted; // mvn
+    5'b11111: ALUResultE = Op1E;      // forward Op1
     5'b10000: ALUResultE = Op1E & ~Op2Shifted; // bic
     5'b10100: ALUResultE = addResult; // rsb
     5'b10010: ALUResultE = addResult; // adc

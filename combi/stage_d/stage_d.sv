@@ -31,7 +31,7 @@ module stage_d(
   output logic [1:0] ResultSrcD, // bit 1 RISC-V only
   output logic armD, // combi only
 
-  input logic StallD, FlushD
+  input logic StallD, FlushD, FlushE
   );
 
 `ifdef RISCV `ifdef ARM
@@ -61,7 +61,7 @@ assign armD = 0;
 
 logic [3:0] ldmReg;
 logic ldmStall;
-ldm ldmshifter(clk, instr[15:0], ldmReg, ldmStall, RegSrcD[2]);
+ldm ldmshifter(clk, instr[15:0], ldmReg, ldmStall, RegSrcD[2], FlushE);
 
 logic [31:0] PCPlus8D = PCPlus4F;
 logic [2:0] ImmSrcD;

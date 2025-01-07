@@ -9,7 +9,7 @@ ARMTEST_CODE_BEGIN
   TEST_RR_CARRY( 1,  rsc, -1, 0, 0 );
   TEST_RR_CARRY( 2,  rsc, -1, 1, 1 );
   TEST_RR_CARRY( 3,  rsc, -3, 3, 1 );
-  TEST_RR_OP( 4,  rsb, -0xF, 0xFF, 0xF0 );
+  TEST_RR_OP( 4,  rsc, -0xF, 0xFF, 0xF0 );
 
   TEST_PASSFAIL;
 

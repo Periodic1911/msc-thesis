@@ -6,7 +6,7 @@
 ARMTEST_ARMV4
 ARMTEST_CODE_BEGIN
 
-  TEST_CASE( 1, r14, 0x1010, ldr r14, =0x1000; ldmfd r14!,{r0,r2,r5,r13} );
+  TEST_CASE( 1, r14, tdat+16, ldr r14, =tdat; ldmfd r14!,{r0,r2,r5,r13} );
 
   TEST_PASSFAIL;
 
@@ -14,6 +14,11 @@ ARMTEST_CODE_END
 
   .data
 ARMTEST_DATA_BEGIN
+tdat:
+.word 0x11111111
+.word 0x22222222
+.word 0x33333333
+.word 0x44444444
 
   TEST_DATA
 

@@ -272,6 +272,7 @@ end
 endmodule
 
 module arm_decoder(input logic clk, rst,
+                   input logic [31:0] instr,
                    input logic [2:0] Op,
                    input logic [5:0] Funct,
                    input logic [7:0] Shift,
@@ -334,12 +335,14 @@ always_comb begin
     3'b101:               controls = 21'b0001_10_1_0_0_0_1_000_00_0_00_00;
            // LDM
     3'b100: case(uCnt)
-            2'b00:        controls = 21'b0000_01_0_1_1_0_0_010_00_1_01_00;
+                          // LDM with post indexing and writeback
+            2'b00:        controls = 21'b0100_01_0_1_1_0_0_010_00_1_01_00;
             2'b01: if(ldmStall)
-                          controls = 21'b0100_11_1_0_1_0_0_000_00_1_01_01;
+                          controls = 21'b0100_11_1_1_1_0_0_000_00_1_01_01;
                    else
-                          controls = 21'b0100_11_1_0_0_0_0_000_00_1_10_01;
-            default:      controls = 21'b1000_11_0_0_0_0_0_000_00_0_00_01;
+                          controls = 21'b1000_11_1_0_1_0_0_000_00_0_00_01;
+                          //controls = 21'b0100_11_1_1_0_0_0_000_00_1_10_01;
+            default:      controls = 21'b1000_11_1_0_1_0_0_000_00_0_00_01;
             endcase
     // Unimplemented
     default: begin

@@ -344,24 +344,29 @@ always_comb begin
 end
 
 logic [2:0] addsub, add;
-logic isAdd, post, wb;
+logic [1:0] ld;
+logic isAdd, post, wb, load;
 assign isAdd = instr[23];
 assign post = ~instr[24];
 assign wb = instr[21];
+assign load = instr[20];
 
 always_comb begin
+  ld = load ? 2'b1_0 : 2'b0_1;
+
   addsub = isAdd ? 3'b000 : 3'b011;
 
   if(uCnt == 2'b00) add = post ? 3'b010 : addsub;
   else if(ldmStall) add = addsub;
   else              add = post ? addsub : 3'b010;
 
+// RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
   if(uCnt == 2'b00)
-                ldmControls = {11'b0100_11_1_1_1_____0_0,add,7'b00_1_01_00};
+                ldmControls = {8'b0100_11_1_1,ld,1'b__0,add,7'b00_1_01_00};
   else if(ldmStall)
-                ldmControls = {11'b0100_11_1_1_1_____0_0,add,7'b00_1_01_01};
+                ldmControls = {8'b0100_11_1_1,ld,1'b__0,add,7'b00_1_01_01};
   else
-                ldmControls = { 8'b1000_11_1_0,wb,2'b0_0,add,7'b00_0_00_01};
+                ldmControls = {8'b1000_11_1_0,wb,2'b0_0,add,7'b00_0_00_01};
 end
 
 assign {RegSrc, ImmSrc, ALUSrc, MemtoReg,

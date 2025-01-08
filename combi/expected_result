@@ -10,6 +10,7 @@ arm_tests/rsc	OK
 arm_tests/sbc	OK
 arm_tests/shift	OK
 arm_tests/simpl	OK
+arm_tests/stm	OK
 arm_tests/teq	OK
 arm_tests/tst	OK
 rv_tests/DDCA	OK

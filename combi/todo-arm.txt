@@ -27,6 +27,13 @@ Rn OP (Fwd) -> Rd
 Rn -> (Rd)
 (Fwd) + Rm -> Rn
 
+[x] STM
+(Post inc) Op2, Rn -> mem
+(Pre inc) Op2, Rn + (-Imm(4)) -> mem
+... Op2, Fwd + (-Imm(4)) -> mem
+(Write back) (Fwd) -> Rn
+(Write back post inc) (Fwd) + (-Imm(4)) -> Rn
+
 [x] LDM
 (Post inc) Rn -> (Rd)
 (Pre inc) Rn + (-Imm(4)) -> (Rd)

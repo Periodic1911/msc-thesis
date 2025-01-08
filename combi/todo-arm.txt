@@ -27,7 +27,7 @@ Rn OP (Fwd) -> Rd
 Rn -> (Rd)
 (Fwd) + Rm -> Rn
 
-[] LDM/STM
+[x] LDM
 (Post inc) Rn -> (Rd)
 (Pre inc) Rn + (-Imm(4)) -> (Rd)
 ... Fwd + (-Imm(4)) -> (Rd)

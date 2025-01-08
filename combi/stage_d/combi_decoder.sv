@@ -300,7 +300,7 @@ module arm_decoder(input logic clk, rst,
 assign MemSigned = 0;
 assign MemSize = 2'b10;
 
-logic [20:0] controls;
+logic [20:0] controls, ldmControls;
 logic [2:0] ALUOp;
 logic [1:0] DPShift;
 logic mainValid, aluValid; // combi only
@@ -334,22 +334,34 @@ always_comb begin
            // B
     3'b101:               controls = 21'b0001_10_1_0_0_0_1_000_00_0_00_00;
            // LDM
-    3'b100: case(uCnt)
-                          // LDM with post indexing and writeback
-            2'b00:        controls = 21'b0100_01_0_1_1_0_0_010_00_1_01_00;
-            2'b01: if(ldmStall)
-                          controls = 21'b0100_11_1_1_1_0_0_000_00_1_01_01;
-                   else
-                          controls = 21'b1000_11_1_0_1_0_0_000_00_0_00_01;
-                          //controls = 21'b0100_11_1_1_0_0_0_000_00_1_10_01;
-            default:      controls = 21'b1000_11_1_0_1_0_0_000_00_0_00_01;
-            endcase
+    3'b100:               controls = ldmControls;
     // Unimplemented
     default: begin
       controls = 21'bx;
       mainValid = 0; // combi only
     end
   endcase
+end
+
+logic [2:0] addsub, add;
+logic isAdd, post, wb;
+assign isAdd = instr[23];
+assign post = ~instr[24];
+assign wb = instr[21];
+
+always_comb begin
+  addsub = isAdd ? 3'b000 : 3'b011;
+
+  if(uCnt == 2'b00) add = post ? 3'b010 : addsub;
+  else if(ldmStall) add = addsub;
+  else              add = post ? addsub : 3'b010;
+
+  if(uCnt == 2'b00)
+                ldmControls = {11'b0100_11_1_1_1_____0_0,add,7'b00_1_01_00};
+  else if(ldmStall)
+                ldmControls = {11'b0100_11_1_1_1_____0_0,add,7'b00_1_01_01};
+  else
+                ldmControls = { 8'b1000_11_1_0,wb,2'b0_0,add,7'b00_0_00_01};
 end
 
 assign {RegSrc, ImmSrc, ALUSrc, MemtoReg,
@@ -408,6 +420,10 @@ always_comb begin
   end
   3'b010: begin
     ALUControl = 5'b11111; // forward Op1
+    FlagW = 2'b00; // don't update Flags
+  end
+  3'b011: begin
+    ALUControl = 5'b00001; // sub
     FlagW = 2'b00; // don't update Flags
   end
   default: begin

@@ -34,7 +34,12 @@ ARMTEST_CODE_BEGIN
 
   ldr r3, =1;
   TEST_CASE(17, r2, tdat+4, ldr r2, =tdat+8; ldrb r1, [r2,-r3, LSL#2]!; );
-  TEST_CASE(19, r2, tdat+12, ldr r2, =tdat+16; ldr r1, [r2,-r3, ROR#30]!; );
+  TEST_CASE(18, r2, tdat+12, ldr r2, =tdat+16; ldr r1, [r2,-r3, ROR#30]!; );
+  TEST_CASE(19, r2, tdat+4, ldr r2, =tdat+8; ldrb r1, [r2],-r3, LSL#2; );
+  TEST_CASE(20, r2, tdat+12, ldr r2, =tdat+16; ldr r1, [r2],-r3, ROR#30; );
+
+  TEST_CASE(21, r1, 0x33333333, ldr r2, =tdat+8; ldr r1, [r2],-r3, LSL#2; );
+  TEST_CASE(22, r1, 0x44444444, ldr r2, =tdat+12; ldr r1, [r2],+r3, ROR#30; );
 
   TEST_PASSFAIL;
 

@@ -347,18 +347,17 @@ logic byteq = instr[22];
 logic [2:0] addsubLD;
 logic addLD = instr[23];
 logic immLD = ~instr[25];
-logic wbLD = instr[21];
 logic preLD = instr[24];
+logic wbLD = instr[21] | ~preLD;
 always_comb begin
   addsubLD = addLD ? 3'b000 : 3'b011;
   if(wbLD)
-    if(preLD)
+    if(preLD) // pre inc WB
       if(~uCnt[0])
-              //controls = 21'b0000_00_1_0_0_0_0_001_10_0_00_00;
         ldControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,addsubLD,1'b0,~immLD,5'b1_01_00};
       else
         ldControls = 21'b1000_01_0_0_1_0_0_010_00_0_00_01;
-    else
+    else // post inc WB
       if(~uCnt[0])
         ldControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,3'b010,1'b0,~immLD,5'b1_01_00};
       else
@@ -366,8 +365,8 @@ always_comb begin
   else
     if(preLD) // pre inc no WB
       ldControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,addsubLD,1'b0,~immLD,5'b0_00_00};
-    else // post inc no WB (I guess that means "don't increment?")
-      ldControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,3'b010,1'b0,~immLD,5'b0_00_00};
+    else // post inc no WB (does not exist)
+      ldControls = 21'bx;
   if(Op == 3'b101)
     MemSize = 2'b10;
   else
@@ -394,9 +393,9 @@ always_comb begin
 
 // RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
   if(uCnt == 2'b00)
-                ldmControls = {8'b0100_11_1_1,ld,1'b__0,add,7'b00_1_01_00};
+                ldmControls = {8'b0100_11_1_1,ld,  1'b0,add,7'b00_1_01_00};
   else if(ldmStall)
-                ldmControls = {8'b0100_11_1_1,ld,1'b__0,add,7'b00_1_01_01};
+                ldmControls = {8'b0100_11_1_1,ld,  1'b0,add,7'b00_1_01_01};
   else
                 ldmControls = {8'b1000_11_1_0,wb,2'b0_0,add,7'b00_0_00_01};
 end

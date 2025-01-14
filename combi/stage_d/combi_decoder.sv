@@ -347,13 +347,31 @@ logic byteq = instr[22];
 logic [2:0] addsubLD;
 logic addLD = instr[23];
 logic immLD = ~instr[25];
+logic wbLD = instr[21];
+logic preLD = instr[24];
 always_comb begin
   addsubLD = addLD ? 3'b000 : 3'b011;
-    ldControls = {2'b00,st,3'b0_01,immLD,2'b1_1,st,1'b0,addsubLD,1'b0,~immLD,5'b0_00_00};
-    if(Op == 3'b101)
-      MemSize = 2'b10;
+  if(wbLD)
+    if(preLD)
+      if(~uCnt[0])
+              //controls = 21'b0000_00_1_0_0_0_0_001_10_0_00_00;
+        ldControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,addsubLD,1'b0,~immLD,5'b1_01_00};
+      else
+        ldControls = 21'b1000_01_0_0_1_0_0_010_00_0_00_01;
     else
-      MemSize = byteq ? 2'b00 : 2'b10;
+      if(~uCnt[0])
+        ldControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,3'b010,1'b0,~immLD,5'b1_01_00};
+      else
+        ldControls = {2'b10,st,3'b0_01,immLD,4'b0_1_0_0,addsubLD,1'b0,~immLD,5'b0_00_01};
+  else
+    if(preLD) // pre inc no WB
+      ldControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,addsubLD,1'b0,~immLD,5'b0_00_00};
+    else // post inc no WB (I guess that means "don't increment?")
+      ldControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,3'b010,1'b0,~immLD,5'b0_00_00};
+  if(Op == 3'b101)
+    MemSize = 2'b10;
+  else
+    MemSize = byteq ? 2'b00 : 2'b10;
 end
 
 /**** LDM/STM ****/

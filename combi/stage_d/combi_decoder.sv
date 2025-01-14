@@ -300,7 +300,7 @@ module arm_decoder(input logic clk, rst,
 assign MemSigned = 0;
 assign MemSize = 2'b10;
 
-logic [20:0] controls, ldmControls;
+logic [20:0] controls, ldmControls, ldControls;
 logic [2:0] ALUOp;
 logic [1:0] DPShift;
 logic mainValid, aluValid; // combi only
@@ -327,13 +327,11 @@ always_comb begin
                           controls = 21'b0000_00_0_0_0_0_0_001_01_0_00_00;
              else
                           controls = 21'b0000_00_0_0_1_0_0_001_01_0_00_00;
-           // LDR
-    3'b01?: if (Funct[0]) controls = 21'b0000_01_1_1_1_0_0_000_00_0_00_00;
-           // STR
-           else           controls = 21'b0010_01_1_1_0_1_0_000_00_0_00_00;
+           // STR/LDR
+    3'b01?:               controls = ldControls;
            // B
     3'b101:               controls = 21'b0001_10_1_0_0_0_1_000_00_0_00_00;
-           // LDM
+           // LDM/STM
     3'b100:               controls = ldmControls;
     // Unimplemented
     default: begin
@@ -343,6 +341,13 @@ always_comb begin
   endcase
 end
 
+// RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
+logic st = ~instr[20];
+always_comb begin
+    ldControls = {2'b00,st,6'b0_01_1_1_1,st,11'b0_000_00_0_00_00};
+end
+
+/**** LDM/STM ****/
 logic [2:0] addsub, add;
 logic [1:0] ld;
 logic isAdd, post, wb, load;

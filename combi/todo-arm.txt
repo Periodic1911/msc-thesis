@@ -15,7 +15,7 @@ Having an extra write port and more forwarding logic and anothe ALUResult wire i
 [] shift
 [] *lo
 [] *hi
-[] pass1
+[x] pass1
 [] adc
 [] adds
 

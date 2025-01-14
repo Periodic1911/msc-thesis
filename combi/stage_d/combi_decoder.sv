@@ -296,10 +296,6 @@ module arm_decoder(input logic clk, rst,
                    output logic [4:0] ALUControl);
 
 
-// TODO add to decoder controls
-assign MemSigned = 0;
-assign MemSize = 2'b10;
-
 logic [20:0] controls, ldmControls, ldControls;
 logic [2:0] ALUOp;
 logic [1:0] DPShift;
@@ -341,10 +337,22 @@ always_comb begin
   endcase
 end
 
+// TODO add to decoder controls
+assign MemSigned = 0;
+//assign MemSize = 2'b10;
+
 // RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
 logic st = ~instr[20];
+logic byteq = instr[22];
+logic [2:0] addsubLD;
+logic addLD = instr[23];
 always_comb begin
-    ldControls = {2'b00,st,6'b0_01_1_1_1,st,11'b0_000_00_0_00_00};
+  addsubLD = addLD ? 3'b000 : 3'b011;
+    ldControls = {2'b00,st,6'b0_01_1_1_1,st,1'b0,addsubLD,7'b00_0_00_00};
+    if(Op == 3'b101)
+      MemSize = 2'b10;
+    else
+      MemSize = byteq ? 2'b00 : 2'b10;
 end
 
 /**** LDM/STM ****/

@@ -346,9 +346,10 @@ logic st = ~instr[20];
 logic byteq = instr[22];
 logic [2:0] addsubLD;
 logic addLD = instr[23];
+logic immLD = ~instr[25];
 always_comb begin
   addsubLD = addLD ? 3'b000 : 3'b011;
-    ldControls = {2'b00,st,6'b0_01_1_1_1,st,1'b0,addsubLD,7'b00_0_00_00};
+    ldControls = {2'b00,st,3'b0_01,immLD,2'b1_1,st,1'b0,addsubLD,1'b0,~immLD,5'b0_00_00};
     if(Op == 3'b101)
       MemSize = 2'b10;
     else

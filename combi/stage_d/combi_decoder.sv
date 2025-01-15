@@ -296,7 +296,7 @@ module arm_decoder(input logic clk, rst,
                    output logic [4:0] ALUControl);
 
 
-logic [20:0] controls, ldmControls, ldControls;
+logic [20:0] controls, ldmControls, ldControls, ldrhControls;
 logic [2:0] ALUOp;
 logic [1:0] DPShift;
 logic mainValid, aluValid; // combi only
@@ -310,25 +310,28 @@ flopenr #(2) microinst_reg(clk, rst, ~FlushE, uCnt_n, uCnt);
 // RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
 always_comb begin
   mainValid = 1; // combi only
-  casez(Op)
+  casez(instr[27:0])
+           // LDRH types
+    28'b000??0??????????????1??1_????:
+                          controls = ldrhControls;
            // Data-processing immediate
-    3'b00?: if (Funct[5])
+    28'b001?????????????????????????:
              if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
                           controls = 21'b0000_00_1_0_0_0_0_001_10_0_00_00;
              else
                           controls = 21'b0000_00_1_0_1_0_0_001_10_0_00_00;
            // Data-processing register
-           else
+    28'b000?????????????????????????:
              if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
                           controls = 21'b0000_00_0_0_0_0_0_001_01_0_00_00;
              else
                           controls = 21'b0000_00_0_0_1_0_0_001_01_0_00_00;
            // STR/LDR
-    3'b01?:               controls = ldControls;
+    28'b01??????????????????????????:               controls = ldControls;
            // B
-    3'b101:               controls = 21'b0001_10_1_0_0_0_1_000_00_0_00_00;
+    28'b101?????????????????????????:               controls = 21'b0001_10_1_0_0_0_1_000_00_0_00_00;
            // LDM/STM
-    3'b100:               controls = ldmControls;
+    28'b100?????????????????????????:               controls = ldmControls;
     // Unimplemented
     default: begin
       controls = 21'bx;
@@ -338,9 +341,9 @@ always_comb begin
 end
 
 // TODO add to decoder controls
-assign MemSigned = 0;
-//assign MemSize = 2'b10;
+//assign MemSigned = 0;
 
+/**** LDR/STR ****/
 // RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
 logic st = ~instr[20];
 logic byteq = instr[22];
@@ -348,7 +351,8 @@ logic [2:0] addsubLD;
 logic addLD = instr[23];
 logic immLD = ~instr[25];
 logic preLD = instr[24];
-logic wbLD = instr[21] | ~preLD;
+logic wbLD;
+assign wbLD = instr[21] | ~preLD;
 always_comb begin
   addsubLD = addLD ? 3'b000 : 3'b011;
   if(wbLD)
@@ -367,11 +371,55 @@ always_comb begin
       ldControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,addsubLD,1'b0,~immLD,5'b0_00_00};
     else // post inc no WB (does not exist)
       ldControls = 21'bx;
-  if(Op == 3'b101)
+
+  if(Op == 3'b100) begin // LDM/STM
     MemSize = 2'b10;
-  else
+    MemSigned = 1'b0;
+  end else if(Op[2:1] == 2'b01) begin // LDR/STR
     MemSize = byteq ? 2'b00 : 2'b10;
+    MemSigned = 1'b0;
+  end else begin
+    case(instr[6:5])
+      2'b00: begin
+        MemSize = 2'b10; // SWP
+        MemSigned = 1'b0;
+      end
+      2'b01: begin
+        MemSize = 2'b01; // Unsigned HW
+        MemSigned = 1'b0;
+      end
+      2'b10: begin
+        MemSize = 2'b00; // Signed Byte
+        MemSigned = 1'b1;
+      end
+       2'b11: begin
+        MemSize = 2'b01; // Signed HW
+        MemSigned = 1'b1;
+      end
+    endcase
+  end
 end
+
+/**** LDRH/STRH/LDRSB/LDRSH/SWP ****/
+always_comb begin
+  if(wbLD)
+    if(preLD) // pre inc WB
+      if(~uCnt[0])
+        ldrhControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,addsubLD,1'b0,~immLD,5'b1_01_00};
+      else
+        ldrhControls = 21'b1000_01_0_0_1_0_0_010_00_0_00_01;
+    else // post inc WB
+      if(~uCnt[0])
+        ldrhControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,3'b010,1'b0,~immLD,5'b1_01_00};
+      else
+        ldrhControls = {2'b10,st,3'b0_01,immLD,4'b0_1_0_0,addsubLD,1'b0,~immLD,5'b0_00_01};
+  else
+    if(preLD) // pre inc no WB
+      ldrhControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,addsubLD,1'b0,~immLD,5'b0_00_00};
+    else // post inc no WB (does not exist)
+      ldrhControls = 21'bx;
+end
+
 
 /**** LDM/STM ****/
 logic [2:0] addsub, add;

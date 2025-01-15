@@ -8,6 +8,12 @@ LDR/STR
 [x] byte
 [x] up/down
 
+LDRH/STRH
+[x] sign
+[] imm addr
+[] reg addr
+[] swp
+
 Multi cycle (for real):
 Having an extra write port and more forwarding logic and anothe ALUResult wire is too much for only a few instructions
 -[x] Forward Op1 / Op2
@@ -27,11 +33,11 @@ Having an extra write port and more forwarding logic and anothe ALUResult wire i
 Rm >> Rs
 Rn OP (Fwd) -> Rd
 
-[] STR/LDR with post inc
+[x] STR/LDR with post inc
 Rn -> (Rd)
 (Fwd) + Rm -> Rn
 
-[] STR/LDR with pre inc
+[x] STR/LDR with pre inc
 Rn + Rm -> (Rd)
 (Fwd) -> Rn
 

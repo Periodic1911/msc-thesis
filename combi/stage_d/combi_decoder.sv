@@ -310,10 +310,11 @@ flopenr #(2) microinst_reg(clk, rst, ~FlushE, uCnt_n, uCnt);
 // RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
 always_comb begin
   mainValid = 1; // combi only
-  casez(instr[27:0])
            // LDRH types
-    28'b000??0??????????????1??1_????:
+  if(instr[27:25] == 3'b000 && instr[4] == 1'b1 && instr[7] == 1'b1)
                           controls = ldrhControls;
+  else
+  casez(instr[27:0])
            // Data-processing immediate
     28'b001?????????????????????????:
              if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
@@ -400,22 +401,24 @@ always_comb begin
   end
 end
 
+logic immLDRH = instr[22];
 /**** LDRH/STRH/LDRSB/LDRSH/SWP ****/
+// RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
 always_comb begin
   if(wbLD)
     if(preLD) // pre inc WB
       if(~uCnt[0])
-        ldrhControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,addsubLD,1'b0,~immLD,5'b1_01_00};
+        ldrhControls = {2'b00,st,3'b0_01,immLDRH,1'b1,~st,st,1'b0,addsubLD,1'b0,1'b0,5'b1_01_00};
       else
         ldrhControls = 21'b1000_01_0_0_1_0_0_010_00_0_00_01;
     else // post inc WB
       if(~uCnt[0])
-        ldrhControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,3'b010,1'b0,~immLD,5'b1_01_00};
+        ldrhControls = {2'b00,st,3'b0_01,immLDRH,1'b1,~st,st,1'b0,3'b010,1'b0,1'b0,5'b1_01_00};
       else
-        ldrhControls = {2'b10,st,3'b0_01,immLD,4'b0_1_0_0,addsubLD,1'b0,~immLD,5'b0_00_01};
+        ldrhControls = {2'b10,st,3'b0_01,immLDRH,4'b0_1_0_0,addsubLD,1'b0,1'b0,5'b0_00_01};
   else
     if(preLD) // pre inc no WB
-      ldrhControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,addsubLD,1'b0,~immLD,5'b0_00_00};
+      ldrhControls = {2'b00,st,3'b0_01,immLDRH,1'b1,~st,st,1'b0,addsubLD,1'b0,1'b0,5'b0_00_00};
     else // post inc no WB (does not exist)
       ldrhControls = 21'bx;
 end

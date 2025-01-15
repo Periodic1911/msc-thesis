@@ -312,9 +312,7 @@ always_comb begin
   if(instr[27:25] == 3'b000 && instr[7:4] == 4'b1001 )
            // SWP
            if(uCnt == 2'b00)      controls = 22'b0000_000_0_1_1_0_0_010_00_1_01_00;
-           else if(uCnt == 2'b01) controls = 22'b0000_000_0_0_0_0_0_010_00_1_10_00;
-           else if(uCnt == 2'b10) controls = 22'b0000_000_0_0_0_1_0_010_00_1_11_01;
-           else                   controls = 22'b0000_000_0_0_0_1_0_010_00_0_00_01;
+           else                   controls = 22'b0000_000_0_0_0_1_0_010_00_0_00_11;
   else if(instr[27:25] == 3'b000 && instr[4] == 1'b1 && instr[7] == 1'b1)
            // LDRH types
                           controls = ldrhControls;

@@ -106,4 +106,4 @@ dass: program.elf
 	llvm-objdump -d -M numeric $< | less
 
 dass.arm: program.elf
-	llvm-objdump -d $< | less
+	llvm-objdump -D $< | less

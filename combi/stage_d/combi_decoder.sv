@@ -70,7 +70,7 @@ logic [1:0] FlagW;
 logic PCSrc, ARM_RegWrite, ARM_MemWrite, MemtoReg, ARM_ALUSrc, ARM_Branch;
 logic [1:0] ARM_MemSize;
 logic ARM_MemSigned;
-logic [1:0] ARM_ImmSrc;
+logic [2:0] ARM_ImmSrc;
 logic [3:0] RegSrc;
 logic [4:0] ARM_ALUControl;
 logic [7:0] Shift;
@@ -93,7 +93,6 @@ always_comb
   if(armD) begin
     /* Don't care about RISC-V outputs */
     ResultSrcD[1] = 1'bx;
-    ImmSrcD[2] = 1'bx;
 
     /* Shared */
     RegWriteD = ARM_RegWrite;
@@ -105,7 +104,7 @@ always_comb
     ShiftTypeD = ShiftType;
     BranchD = {ARM_Branch, 1'b0};
     ALUSrcD = {1'b0, ARM_ALUSrc};
-    ImmSrcD[1:0] = ARM_ImmSrc;
+    ImmSrcD = ARM_ImmSrc;
     ResultSrcD[0] = MemtoReg;
     CondD = instr[31:28];
 
@@ -286,7 +285,7 @@ module arm_decoder(input logic clk, rst,
                    output logic MemtoReg, ALUSrc,
                    output logic [1:0] MemSize,
                    output logic MemSigned,
-                   output logic [1:0] ImmSrc,
+                   output logic [2:0] ImmSrc,
                    output logic [3:0] RegSrc,
                    output logic [4:0] ShiftAmt,
                    output logic [2:0] ShiftType,
@@ -296,7 +295,7 @@ module arm_decoder(input logic clk, rst,
                    output logic [4:0] ALUControl);
 
 
-logic [20:0] controls, ldmControls, ldControls, ldrhControls;
+logic [21:0] controls, ldmControls, ldControls, ldrhControls;
 logic [2:0] ALUOp;
 logic [1:0] DPShift;
 logic mainValid, aluValid; // combi only
@@ -310,32 +309,38 @@ flopenr #(2) microinst_reg(clk, rst, ~FlushE, uCnt_n, uCnt);
 // RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
 always_comb begin
   mainValid = 1; // combi only
+  if(instr[27:25] == 3'b000 && instr[7:4] == 4'b1001 )
+           // SWP
+           if(uCnt == 2'b00)      controls = 22'b0000_000_0_1_1_0_0_010_00_1_01_00;
+           else if(uCnt == 2'b01) controls = 22'b0000_000_0_0_0_0_0_010_00_1_10_00;
+           else if(uCnt == 2'b10) controls = 22'b0000_000_0_0_0_1_0_010_00_1_11_01;
+           else                   controls = 22'b0000_000_0_0_0_1_0_010_00_0_00_01;
+  else if(instr[27:25] == 3'b000 && instr[4] == 1'b1 && instr[7] == 1'b1)
            // LDRH types
-  if(instr[27:25] == 3'b000 && instr[4] == 1'b1 && instr[7] == 1'b1)
                           controls = ldrhControls;
   else
   casez(instr[27:0])
            // Data-processing immediate
     28'b001?????????????????????????:
              if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
-                          controls = 21'b0000_00_1_0_0_0_0_001_10_0_00_00;
+                          controls = 22'b0000_000_1_0_0_0_0_001_10_0_00_00;
              else
-                          controls = 21'b0000_00_1_0_1_0_0_001_10_0_00_00;
+                          controls = 22'b0000_000_1_0_1_0_0_001_10_0_00_00;
            // Data-processing register
     28'b000?????????????????????????:
              if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
-                          controls = 21'b0000_00_0_0_0_0_0_001_01_0_00_00;
+                          controls = 22'b0000_000_0_0_0_0_0_001_01_0_00_00;
              else
-                          controls = 21'b0000_00_0_0_1_0_0_001_01_0_00_00;
+                          controls = 22'b0000_000_0_0_1_0_0_001_01_0_00_00;
            // STR/LDR
     28'b01??????????????????????????:               controls = ldControls;
            // B
-    28'b101?????????????????????????:               controls = 21'b0001_10_1_0_0_0_1_000_00_0_00_00;
+    28'b101?????????????????????????:               controls = 22'b0001_010_1_0_0_0_1_000_00_0_00_00;
            // LDM/STM
     28'b100?????????????????????????:               controls = ldmControls;
     // Unimplemented
     default: begin
-      controls = 21'bx;
+      controls = 22'bx;
       mainValid = 0; // combi only
     end
   endcase
@@ -359,19 +364,19 @@ always_comb begin
   if(wbLD)
     if(preLD) // pre inc WB
       if(~uCnt[0])
-        ldControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,addsubLD,1'b0,~immLD,5'b1_01_00};
+        ldControls = {2'b00,st,4'b0_001,immLD,1'b1,~st,st,1'b0,addsubLD,1'b0,~immLD,5'b1_01_00};
       else
-        ldControls = 21'b1000_01_0_0_1_0_0_010_00_0_00_01;
+        ldControls = 22'b1000_001_0_0_1_0_0_010_00_0_00_01;
     else // post inc WB
       if(~uCnt[0])
-        ldControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,3'b010,1'b0,~immLD,5'b1_01_00};
+        ldControls = {2'b00,st,4'b0_001,immLD,1'b1,~st,st,1'b0,3'b010,1'b0,~immLD,5'b1_01_00};
       else
-        ldControls = {2'b10,st,3'b0_01,immLD,4'b0_1_0_0,addsubLD,1'b0,~immLD,5'b0_00_01};
+        ldControls = {2'b10,st,4'b0_001,immLD,4'b0_1_0_0,addsubLD,1'b0,~immLD,5'b0_00_01};
   else
     if(preLD) // pre inc no WB
-      ldControls = {2'b00,st,3'b0_01,immLD,1'b1,~st,st,1'b0,addsubLD,1'b0,~immLD,5'b0_00_00};
+      ldControls = {2'b00,st,4'b0_001,immLD,1'b1,~st,st,1'b0,addsubLD,1'b0,~immLD,5'b0_00_00};
     else // post inc no WB (does not exist)
-      ldControls = 21'bx;
+      ldControls = 22'bx;
 
   if(Op == 3'b100) begin // LDM/STM
     MemSize = 2'b10;
@@ -382,7 +387,7 @@ always_comb begin
   end else begin
     case(instr[6:5])
       2'b00: begin
-        MemSize = 2'b10; // SWP
+        MemSize = byteq ? 2'b00 : 2'b10; // SWP
         MemSigned = 1'b0;
       end
       2'b01: begin
@@ -408,19 +413,19 @@ always_comb begin
   if(wbLD)
     if(preLD) // pre inc WB
       if(~uCnt[0])
-        ldrhControls = {2'b00,st,3'b0_01,immLDRH,1'b1,~st,st,1'b0,addsubLD,1'b0,1'b0,5'b1_01_00};
+        ldrhControls = {2'b00,st,4'b0_100,immLDRH,1'b1,~st,st,1'b0,addsubLD,1'b0,1'b0,5'b1_01_00};
       else
-        ldrhControls = 21'b1000_01_0_0_1_0_0_010_00_0_00_01;
+        ldrhControls = 22'b1000_100_0_0_1_0_0_010_00_0_00_01;
     else // post inc WB
       if(~uCnt[0])
-        ldrhControls = {2'b00,st,3'b0_01,immLDRH,1'b1,~st,st,1'b0,3'b010,1'b0,1'b0,5'b1_01_00};
+        ldrhControls = {2'b00,st,4'b0_100,immLDRH,1'b1,~st,st,1'b0,3'b010,1'b0,1'b0,5'b1_01_00};
       else
-        ldrhControls = {2'b10,st,3'b0_01,immLDRH,4'b0_1_0_0,addsubLD,1'b0,1'b0,5'b0_00_01};
+        ldrhControls = {2'b10,st,4'b0_100,immLDRH,4'b0_1_0_0,addsubLD,1'b0,1'b0,5'b0_00_01};
   else
     if(preLD) // pre inc no WB
-      ldrhControls = {2'b00,st,3'b0_01,immLDRH,1'b1,~st,st,1'b0,addsubLD,1'b0,1'b0,5'b0_00_00};
+      ldrhControls = {2'b00,st,4'b0_100,immLDRH,1'b1,~st,st,1'b0,addsubLD,1'b0,1'b0,5'b0_00_00};
     else // post inc no WB (does not exist)
-      ldrhControls = 21'bx;
+      ldrhControls = 22'bx;
 end
 
 
@@ -444,11 +449,11 @@ always_comb begin
 
 // RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
   if(uCnt == 2'b00)
-                ldmControls = {8'b0100_11_1_1,ld,  1'b0,add,7'b00_1_01_00};
+                ldmControls = {9'b0100_011_1_1,ld,  1'b0,add,7'b00_1_01_00};
   else if(ldmStall)
-                ldmControls = {8'b0100_11_1_1,ld,  1'b0,add,7'b00_1_01_01};
+                ldmControls = {9'b0100_011_1_1,ld,  1'b0,add,7'b00_1_01_01};
   else
-                ldmControls = {8'b1000_11_1_0,wb,2'b0_0,add,7'b00_0_00_01};
+                ldmControls = {9'b1000_011_1_0,wb,2'b0_0,add,7'b00_0_00_01};
 end
 
 assign {RegSrc, ImmSrc, ALUSrc, MemtoReg,
@@ -511,6 +516,10 @@ always_comb begin
   end
   3'b011: begin
     ALUControl = 5'b00001; // sub
+    FlagW = 2'b00; // don't update Flags
+  end
+  3'b100: begin
+    ALUControl = 5'b00110; // forward Op2
     FlagW = 2'b00; // don't update Flags
   end
   default: begin

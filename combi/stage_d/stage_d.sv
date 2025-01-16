@@ -69,7 +69,18 @@ logic [3:0] RegSrcD; // ARM only
 
 combi_decoder dec(.*);
 
-assign RdD = (armD) ? {1'b0, RegSrcD[2] ? ldmReg : RegSrcD[3] ? instr[19:16] : instr[15:12]} : instr[11:7];
+always_comb
+  if(armD)
+    if(RegSrcD[2])
+      RdD = {1'b0, ldmReg}; // LDM
+    else if (RegSrcD[3])
+      RdD = {1'b0, instr[19:16]}; // LDR/STR WB
+    else if (RegSrcD[0])
+      RdD = 5'd14; // BL
+    else
+      RdD = {1'b0, instr[15:12]}; // Data Processing
+  else
+    RdD = instr[11:7];
 
 logic [4:0] ra1, ra2;
 always_comb

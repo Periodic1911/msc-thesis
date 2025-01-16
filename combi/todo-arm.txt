@@ -10,9 +10,9 @@ LDR/STR
 
 LDRH/STRH
 [x] sign
-[] imm addr
-[] reg addr
-[] swp
+[x] imm addr
+[x] reg addr
+[x] swp
 
 Multi cycle (for real):
 Having an extra write port and more forwarding logic and anothe ALUResult wire is too much for only a few instructions
@@ -93,10 +93,12 @@ New ALU ops
 
 New Immediates
 [x] 8-bit pre-shift imm
-[] 8-bit ldrhb imm
+[x] 8-bit ldrhb imm
 
 Multi-cycle:
-[] Swap (make single cycle, memory units support simulatneous write/read)
+[x] Swap
 
 Other:
-[] branch with link
+[x] branch with link
+[x] set RdD to r14
+[x] write PCPlus4

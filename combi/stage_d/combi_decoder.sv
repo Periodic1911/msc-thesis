@@ -67,7 +67,8 @@ logic [2:0] ARM_Op;
 logic [5:0] Funct;
 logic [3:0] Rd;
 logic [1:0] FlagW;
-logic PCSrc, ARM_RegWrite, ARM_MemWrite, MemtoReg, ARM_ALUSrc, ARM_Branch;
+logic PCSrc, ARM_RegWrite, ARM_MemWrite, ARM_ALUSrc, ARM_Branch;
+logic [1:0] ARM_ResultSrc;
 logic [1:0] ARM_MemSize;
 logic ARM_MemSigned;
 logic [2:0] ARM_ImmSrc;
@@ -86,7 +87,7 @@ assign {ARM_Op, Funct, Rd, Shift} = {
   instr[15:12],
   instr[11:4] };
 
-arm_decoder arm_dec(.*, .Op(ARM_Op), .RegW(ARM_RegWrite), .MemSigned(ARM_MemSigned), .MemSize(ARM_MemSize), .MemW(ARM_MemWrite), .ALUSrc(ARM_ALUSrc), .ImmSrc(ARM_ImmSrc), .ALUControl(ARM_ALUControl), .Branch(ARM_Branch) );
+arm_decoder arm_dec(.*, .Op(ARM_Op), .ResultSrc(ARM_ResultSrc), .RegW(ARM_RegWrite), .MemSigned(ARM_MemSigned), .MemSize(ARM_MemSize), .MemW(ARM_MemWrite), .ALUSrc(ARM_ALUSrc), .ImmSrc(ARM_ImmSrc), .ALUControl(ARM_ALUControl), .Branch(ARM_Branch) );
 
 /* Combine RISC-V and ARM */
 always_comb
@@ -105,7 +106,7 @@ always_comb
     BranchD = {ARM_Branch, 1'b0};
     ALUSrcD = {1'b0, ARM_ALUSrc};
     ImmSrcD = ARM_ImmSrc;
-    ResultSrcD[0] = MemtoReg;
+    ResultSrcD = ARM_ResultSrc;
     CondD = instr[31:28];
 
     /* ARM Only */
@@ -282,7 +283,8 @@ module arm_decoder(input logic clk, rst,
                    output logic Branch,
                    output logic [1:0] FlagW,
                    output logic PCSrc, RegW, MemW,
-                   output logic MemtoReg, ALUSrc,
+                   output logic ALUSrc,
+                   output logic [1:0] ResultSrc,
                    output logic [1:0] MemSize,
                    output logic MemSigned,
                    output logic [2:0] ImmSrc,
@@ -295,7 +297,7 @@ module arm_decoder(input logic clk, rst,
                    output logic [4:0] ALUControl);
 
 
-logic [21:0] controls, ldmControls, ldControls, ldrhControls;
+logic [22:0] controls, ldmControls, ldControls, ldrhControls;
 logic [2:0] ALUOp;
 logic [1:0] DPShift;
 logic mainValid, aluValid; // combi only
@@ -306,39 +308,42 @@ logic [1:0] uCnt_n;
 flopenr #(2) microinst_reg(clk, rst, ~FlushE, uCnt_n, uCnt);
 
 // Main Decoder
-// RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
+// RegSrc_ImmSrc_ALUSrc_ResultSrc_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
 always_comb begin
   mainValid = 1; // combi only
   if(instr[27:25] == 3'b000 && instr[7:4] == 4'b1001 )
            // SWP
-           if(uCnt == 2'b00)      controls = 22'b0000_000_0_1_1_0_0_010_00_1_01_00;
-           else                   controls = 22'b0000_000_0_0_0_1_0_010_00_0_00_11;
+           if(uCnt == 2'b00)      controls = 23'b0000_000_0_01_1_0_0_010_00_1_01_00;
+           else                   controls = 23'b0000_000_0_00_0_1_0_010_00_0_00_11;
   else if(instr[27:25] == 3'b000 && instr[4] == 1'b1 && instr[7] == 1'b1)
            // LDRH types
                           controls = ldrhControls;
   else
-  casez(instr[27:0])
+  casez(instr[27:25])
            // Data-processing immediate
-    28'b001?????????????????????????:
+    3'b001:
              if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
-                          controls = 22'b0000_000_1_0_0_0_0_001_10_0_00_00;
+                          controls = 23'b0000_000_1_00_0_0_0_001_10_0_00_00;
              else
-                          controls = 22'b0000_000_1_0_1_0_0_001_10_0_00_00;
+                          controls = 23'b0000_000_1_00_1_0_0_001_10_0_00_00;
            // Data-processing register
-    28'b000?????????????????????????:
+    3'b000:
              if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
-                          controls = 22'b0000_000_0_0_0_0_0_001_01_0_00_00;
+                          controls = 23'b0000_000_0_00_0_0_0_001_01_0_00_00;
              else
-                          controls = 22'b0000_000_0_0_1_0_0_001_01_0_00_00;
+                          controls = 23'b0000_000_0_00_1_0_0_001_01_0_00_00;
            // STR/LDR
-    28'b01??????????????????????????:               controls = ldControls;
+    3'b01?:               controls = ldControls;
+    3'b101:
+           // BL
+            if(instr[24]) controls = 23'b0001_010_1_10_1_0_1_000_00_0_00_00;
            // B
-    28'b101?????????????????????????:               controls = 22'b0001_010_1_0_0_0_1_000_00_0_00_00;
+            else          controls = 23'b0001_010_1_00_0_0_1_000_00_0_00_00;
            // LDM/STM
-    28'b100?????????????????????????:               controls = ldmControls;
+    3'b100:               controls = ldmControls;
     // Unimplemented
     default: begin
-      controls = 22'bx;
+      controls = 23'bx;
       mainValid = 0; // combi only
     end
   endcase
@@ -348,7 +353,7 @@ end
 //assign MemSigned = 0;
 
 /**** LDR/STR ****/
-// RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
+// RegSrc_ImmSrc_ALUSrc_ResultSrc_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
 logic st = ~instr[20];
 logic byteq = instr[22];
 logic [2:0] addsubLD;
@@ -362,19 +367,19 @@ always_comb begin
   if(wbLD)
     if(preLD) // pre inc WB
       if(~uCnt[0])
-        ldControls = {2'b00,st,4'b0_001,immLD,1'b1,~st,st,1'b0,addsubLD,1'b0,~immLD,5'b1_01_00};
+        ldControls = {2'b00,st,4'b0_001,immLD,2'b01,~st,st,1'b0,addsubLD,1'b0,~immLD,5'b1_01_00};
       else
-        ldControls = 22'b1000_001_0_0_1_0_0_010_00_0_00_01;
+        ldControls = 23'b1000_001_0_00_1_0_0_010_00_0_00_01;
     else // post inc WB
       if(~uCnt[0])
-        ldControls = {2'b00,st,4'b0_001,immLD,1'b1,~st,st,1'b0,3'b010,1'b0,~immLD,5'b1_01_00};
+        ldControls = {2'b00,st,4'b0_001,immLD,2'b01,~st,st,1'b0,3'b010,1'b0,~immLD,5'b1_01_00};
       else
-        ldControls = {2'b10,st,4'b0_001,immLD,4'b0_1_0_0,addsubLD,1'b0,~immLD,5'b0_00_01};
+        ldControls = {2'b10,st,4'b0_001,immLD,5'b00_1_0_0,addsubLD,1'b0,~immLD,5'b0_00_01};
   else
     if(preLD) // pre inc no WB
-      ldControls = {2'b00,st,4'b0_001,immLD,1'b1,~st,st,1'b0,addsubLD,1'b0,~immLD,5'b0_00_00};
+      ldControls = {2'b00,st,4'b0_001,immLD,2'b01,~st,st,1'b0,addsubLD,1'b0,~immLD,5'b0_00_00};
     else // post inc no WB (does not exist)
-      ldControls = 22'bx;
+      ldControls = 23'bx;
 
   if(Op == 3'b100) begin // LDM/STM
     MemSize = 2'b10;
@@ -406,24 +411,24 @@ end
 
 logic immLDRH = instr[22];
 /**** LDRH/STRH/LDRSB/LDRSH/SWP ****/
-// RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
+// RegSrc_ImmSrc_ALUSrc_ResultSrc_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
 always_comb begin
   if(wbLD)
     if(preLD) // pre inc WB
       if(~uCnt[0])
-        ldrhControls = {2'b00,st,4'b0_100,immLDRH,1'b1,~st,st,1'b0,addsubLD,1'b0,1'b0,5'b1_01_00};
+        ldrhControls = {2'b00,st,4'b0_100,immLDRH,2'b01,~st,st,1'b0,addsubLD,1'b0,1'b0,5'b1_01_00};
       else
-        ldrhControls = 22'b1000_100_0_0_1_0_0_010_00_0_00_01;
+        ldrhControls = 23'b1000_100_0_00_1_0_0_010_00_0_00_01;
     else // post inc WB
       if(~uCnt[0])
-        ldrhControls = {2'b00,st,4'b0_100,immLDRH,1'b1,~st,st,1'b0,3'b010,1'b0,1'b0,5'b1_01_00};
+        ldrhControls = {2'b00,st,4'b0_100,immLDRH,2'b01,~st,st,1'b0,3'b010,1'b0,1'b0,5'b1_01_00};
       else
-        ldrhControls = {2'b10,st,4'b0_100,immLDRH,4'b0_1_0_0,addsubLD,1'b0,1'b0,5'b0_00_01};
+        ldrhControls = {2'b10,st,4'b0_100,immLDRH,5'b00_1_0_0,addsubLD,1'b0,1'b0,5'b0_00_01};
   else
     if(preLD) // pre inc no WB
-      ldrhControls = {2'b00,st,4'b0_100,immLDRH,1'b1,~st,st,1'b0,addsubLD,1'b0,1'b0,5'b0_00_00};
+      ldrhControls = {2'b00,st,4'b0_100,immLDRH,2'b01,~st,st,1'b0,addsubLD,1'b0,1'b0,5'b0_00_00};
     else // post inc no WB (does not exist)
-      ldrhControls = 22'bx;
+      ldrhControls = 23'bx;
 end
 
 
@@ -445,16 +450,16 @@ always_comb begin
   else if(ldmStall) add = addsub;
   else              add = post ? addsub : 3'b010;
 
-// RegSrc_ImmSrc_ALUSrc_MemtoReg_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
+// RegSrc_ImmSrc_ALUSrc_ResultSrc_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
   if(uCnt == 2'b00)
-                ldmControls = {9'b0100_011_1_1,ld,  1'b0,add,7'b00_1_01_00};
+                ldmControls = {10'b0100_011_1_01,ld,  1'b0,add,7'b00_1_01_00};
   else if(ldmStall)
-                ldmControls = {9'b0100_011_1_1,ld,  1'b0,add,7'b00_1_01_01};
+                ldmControls = {10'b0100_011_1_01,ld,  1'b0,add,7'b00_1_01_01};
   else
-                ldmControls = {9'b1000_011_1_0,wb,2'b0_0,add,7'b00_0_00_01};
+                ldmControls = {10'b1000_011_1_00,wb,2'b0_0,add,7'b00_0_00_01};
 end
 
-assign {RegSrc, ImmSrc, ALUSrc, MemtoReg,
+assign {RegSrc, ImmSrc, ALUSrc, ResultSrc,
   RegW, MemW, Branch, ALUOp, DPShift,
   ARM_StallF, uCnt_n, FwdD} = controls;
 
@@ -528,6 +533,6 @@ always_comb begin
 end
 
 // PC Logic
-assign PCSrc = ((Rd == 4'b1111) & RegW);
+assign PCSrc = ((Rd == 4'b1111) & RegW & ~RegSrc[0]);
 
 endmodule

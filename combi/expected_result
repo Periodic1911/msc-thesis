@@ -1,5 +1,6 @@
 arm_tests/DDCA	OK
 arm_tests/adc	OK
+arm_tests/b	OK
 arm_tests/bic	OK
 arm_tests/cmn	OK
 arm_tests/cmp	OK

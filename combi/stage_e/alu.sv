@@ -36,6 +36,9 @@ mux2 #(32)armmux(Op2E,shiftResult,armE,Op2Shifted);
 
 logic rv_ge = (addResult[31] == overflow);
 
+logic [63:0] mulResult;
+multiplier mul(1'b0, Op1E, Op2E, mulResult);
+
 always_comb
   case(ALUControlE)
     5'b00000: ALUResultE = addResult; // add
@@ -44,6 +47,8 @@ always_comb
     5'b00011: ALUResultE = Op1E | Op2Shifted; // or
     5'b00100: ALUResultE = Op1E ^ Op2Shifted; // xor
     5'b00110: ALUResultE = Op2Shifted; // forward immediate
+    5'b01100: ALUResultE = mulResult[31:0]; // multiply low
+    5'b01101: ALUResultE = mulResult[63:32]; // multiply high
     // RISC-V only
     5'b00101: ALUResultE = {31'b0, ~rv_ge}; // slt
     5'b00111: ALUResultE = {31'b0, carry}; // sltu
@@ -139,5 +144,13 @@ always_comb
     2'b10: q = arshift_stage[0];
     2'b11: q = ror_stage[0];
   endcase
+
+endmodule
+
+module multiplier(input logic sign,
+                  input logic [31:0] a, b,
+                  output logic [63:0] q);
+logic signed [63:0] q_signed = $signed(a) * $signed(b);
+assign q = sign ? q_signed : (a * b);
 
 endmodule

@@ -174,16 +174,16 @@ always_comb begin
                 ALUControl = 4'b0001; // sub
               else
                 ALUControl = 4'b0000; // add, addi
-      3'b001:  ALUControl = 4'b1000; // sll, slli
+      3'b001:   ALUControl = 4'b1000; // sll, slli
       3'b101: if (funct7b5)
                 ALUControl = 4'b1010; // sra, srai
               else
                 ALUControl = 4'b1001; // srl, srli
-      3'b010:  ALUControl = 4'b0101; // slt, slti
-      3'b011:  ALUControl = 4'b0101; // sltu, sltiu
-      3'b100:  ALUControl = 4'b0100; // xor, xori
-      3'b110:  ALUControl = 4'b0011; // or, ori
-      3'b111:  ALUControl = 4'b0010; // and, andi
+      3'b010:   ALUControl = 4'b0101; // slt, slti
+      3'b011:   ALUControl = 4'b0101; // sltu, sltiu
+      3'b100:   ALUControl = 4'b0100; // xor, xori
+      3'b110:   ALUControl = 4'b0011; // or, ori
+      3'b111:   ALUControl = 4'b0010; // and, andi
       default: begin
         ALUControl = 4'bxxxx; // ???
         RV_ALUValid = 0; // combi only
@@ -311,7 +311,18 @@ flopenr #(2) microinst_reg(clk, rst, ~FlushE, uCnt_n, uCnt);
 // RegSrc_ImmSrc_ALUSrc_ResultSrc_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
 always_comb begin
   mainValid = 1; // combi only
-  if(instr[27:25] == 3'b000 && instr[7:4] == 4'b1001 )
+  if(instr[27:21] == 7'b000000_0 && instr[7:4] == 4'b1001 ) // MUL
+                                  controls = 23'b1011_000_0_00_1_0_0_101_00_0_00_00;
+  else if(instr[27:21] == 7'b000000_1 && instr[7:4] == 4'b1001) // MLA
+           if(uCnt == 2'b00)      controls = 23'b0000_000_0_01_1_0_0_010_00_1_01_00;
+           else                   controls = 23'bx;
+  else if(instr[27:23] == 5'b00001 && instr[21] == 1'b0 && instr[7:4] == 4'b1001) // MULL
+           if(uCnt == 2'b00)      controls = 23'b0000_000_0_01_1_0_0_010_00_1_01_00;
+           else                   controls = 23'bx;
+  else if(instr[27:23] == 5'b00001 && instr[21] == 1'b0 && instr[7:4] == 4'b1001) // MLAL
+           if(uCnt == 2'b00)      controls = 23'b0000_000_0_01_1_0_0_010_00_1_01_00;
+           else                   controls = 23'bx;
+  else if(instr[27:25] == 3'b000 && instr[7:4] == 4'b1001 )
            // SWP
            if(uCnt == 2'b00)      controls = 23'b0000_000_0_01_1_0_0_010_00_1_01_00;
            else                   controls = 23'b0000_000_0_00_0_1_0_010_00_0_00_11;
@@ -535,6 +546,14 @@ always_comb begin
   3'b100: begin
     ALUControl = 5'b00110; // forward Op2
     FlagW = 2'b00; // don't update Flags
+  end
+  3'b101: begin
+    ALUControl = 5'b01100; // Multiply low
+    FlagW = {Funct[0], 1'b0}; // Set Z and N
+  end
+  3'b110: begin
+    ALUControl = 5'b01101; // Multiply high
+    FlagW = {Funct[0], 1'b0}; // Set Z and N
   end
   default: begin
     ALUControl = 5'bx;

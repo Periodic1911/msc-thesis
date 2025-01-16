@@ -7,6 +7,7 @@ arm_tests/cmp	OK
 arm_tests/ldm	OK
 arm_tests/ldrh	OK
 arm_tests/ldstr	OK
+arm_tests/mul	OK
 arm_tests/mvn	OK
 arm_tests/rsb	OK
 arm_tests/rsc	OK

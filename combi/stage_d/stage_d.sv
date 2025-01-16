@@ -73,8 +73,8 @@ always_comb
   if(armD)
     if(RegSrcD[2])
       RdD = {1'b0, ldmReg}; // LDM
-    else if (RegSrcD == 4'b1000)
-      RdD = {1'b0, instr[19:16]}; // LDR/STR WB
+    else if (RegSrcD[3])
+      RdD = {1'b0, instr[19:16]}; // LDR/STR WB and MUL
     else if (RegSrcD == 4'b0001)
       RdD = 5'd14; // BL
     else
@@ -87,7 +87,7 @@ always_comb
   if(armD) begin
     // Mux ARM RegSrc
     ra1 = {1'b0, (RegSrcD == 4'b0001) ? 4'd15 : // Branch
-      (RegSrcD == 4'b0011) ? instr[11:8] : // Shift
+      (RegSrcD[1:0] == 2'b11) ? instr[11:8] : // Shift
       instr[19:16]};
 
     ra2 = {1'b0, RegSrcD[2] ? ldmReg :   // LDM

@@ -320,14 +320,21 @@ always_comb begin
                           controls = ldrhControls;
   else
   casez(instr[27:25])
-           // Data-processing immediate
     3'b001:
+           // Data-processing immediate
              if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
                           controls = 23'b0000_000_1_00_0_0_0_001_10_0_00_00;
              else
                           controls = 23'b0000_000_1_00_1_0_0_001_10_0_00_00;
-           // Data-processing register
     3'b000:
+           // Data-processing register
+      if (instr[4]) begin // TODO: shift
+        if(uCnt == 2'b00) controls = 23'b0011_000_0_00_0_0_0_100_11_1_01_00;
+        else if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
+                          controls = 23'b0000_000_0_00_0_0_0_001_00_0_00_10;
+        else
+                          controls = 23'b0000_000_0_00_1_0_0_001_00_0_00_10;
+    end else
              if (Funct[4:3] == 2'b10) // TST, TEQ, CMP, CMN
                           controls = 23'b0000_000_0_00_0_0_0_001_01_0_00_00;
              else
@@ -463,7 +470,11 @@ assign {RegSrc, ImmSrc, ALUSrc, ResultSrc,
   RegW, MemW, Branch, ALUOp, DPShift,
   ARM_StallF, uCnt_n, FwdD} = controls;
 
-mux3 #(3)shtypemux(3'b1_00, {1'b1,Shift[2:1]}, 3'b1_11, DPShift, ShiftType);
+mux4 #(3)shtypemux(3'b1_00, // No shift
+  {1'b1,Shift[2:1]},        // Shift by ShiftAmt
+  3'b1_11,                  // Shift Immediate, type is always ROR
+  {1'b0,Shift[2:1]},        // Shift by register
+  DPShift, ShiftType);
 //assign ShiftType = ImmShift ? 3'b1_11 : {1'b1,Shift[2:1]};
 
 mux3 #(5)shamtmux(5'b00000, Shift[7:3], {Shift[7:4], 1'b0}, DPShift, ShiftAmt);

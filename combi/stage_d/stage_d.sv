@@ -73,9 +73,9 @@ always_comb
   if(armD)
     if(RegSrcD[2])
       RdD = {1'b0, ldmReg}; // LDM
-    else if (RegSrcD[3])
+    else if (RegSrcD == 4'b1000)
       RdD = {1'b0, instr[19:16]}; // LDR/STR WB
-    else if (RegSrcD[0])
+    else if (RegSrcD == 4'b0001)
       RdD = 5'd14; // BL
     else
       RdD = {1'b0, instr[15:12]}; // Data Processing
@@ -86,8 +86,13 @@ logic [4:0] ra1, ra2;
 always_comb
   if(armD) begin
     // Mux ARM RegSrc
-    ra1 = {1'b0, RegSrcD[0] ? 4'd15 : instr[19:16]};
-    ra2 = {1'b0, RegSrcD[2] ? ldmReg : RegSrcD[1] ? RdD[3:0] : instr[3:0]};
+    ra1 = {1'b0, (RegSrcD == 4'b0001) ? 4'd15 : // Branch
+      (RegSrcD == 4'b0011) ? instr[11:8] : // Shift
+      instr[19:16]};
+
+    ra2 = {1'b0, RegSrcD[2] ? ldmReg :   // LDM
+      (RegSrcD == 4'b0010) ? RdD[3:0] :  // STR/LDR
+      instr[3:0]};
   end else begin
     // RISC-V assignment
     ra1 = instr[19:15];

@@ -22,14 +22,14 @@ Having an extra write port and more forwarding logic and anothe ALUResult wire i
 -[x] LDM stall (also halts uinst counter)
 -[x] Force immediate 4
 
-[] shift
+[x] pass2 (for shift)
 [] *lo
 [] *hi
 [x] pass1
 [] adc
 [] adds
 
-[] Shift with register
+[x] Shift with register
 Rm >> Rs
 Rn OP (Fwd) -> Rd
 

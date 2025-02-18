@@ -308,14 +308,40 @@ logic [1:0] uCnt_n;
 flopenr #(2) microinst_reg(clk, rst, ~FlushE, uCnt_n, uCnt);
 
 // Main Decoder
+/*
+  3'b000: begin
+    ALUControl = 5'b00000; // add for non-DP instructions
+    FlagW = 2'b00; // don't update Flags
+  end
+  3'b010: begin
+    ALUControl = 5'b11111; // forward Op1
+    FlagW = 2'b00; // don't update Flags
+  end
+  3'b011: begin
+    ALUControl = 5'b00001; // sub
+    FlagW = 2'b00; // don't update Flags
+  end
+  3'b100: begin
+    ALUControl = 5'b00110; // forward Op2
+    FlagW = 2'b00; // don't update Flags
+  end
+  3'b101: begin
+    ALUControl = 5'b01100; // Multiply low
+    FlagW = 2'b00; // don't update Flags
+    // FlagW = {Funct[0], 1'b0}; // Set Z and N
+  end
+  3'b110: begin
+    ALUControl = 5'b01101; // Multiply high
+    FlagW = 2'b00; // don't update Flags
+*/
 // RegSrc_ImmSrc_ALUSrc_ResultSrc_RegW_MemW_Branch_ALUOp_DPShift_StallF_uCnt_FwdD
 always_comb begin
   mainValid = 1; // combi only
   if(instr[27:21] == 7'b000000_0 && instr[7:4] == 4'b1001 ) // MUL
                                   controls = 23'b1011_000_0_00_1_0_0_101_00_0_00_00;
   else if(instr[27:21] == 7'b000000_1 && instr[7:4] == 4'b1001) // MLA
-           if(uCnt == 2'b00)      controls = 23'b0000_000_0_01_1_0_0_010_00_1_01_00;
-           else                   controls = 23'bx;
+           if(uCnt == 2'b00)      controls = 23'b1011_000_0_00_0_0_0_101_00_1_01_00;
+           else                   controls = 23'b1001_000_0_00_1_0_0_000_00_0_00_10;
   else if(instr[27:23] == 5'b00001 && instr[21] == 1'b0 && instr[7:4] == 4'b1001) // MULL
            if(uCnt == 2'b00)      controls = 23'b0000_000_0_01_1_0_0_010_00_1_01_00;
            else                   controls = 23'bx;
@@ -549,11 +575,13 @@ always_comb begin
   end
   3'b101: begin
     ALUControl = 5'b01100; // Multiply low
-    FlagW = {Funct[0], 1'b0}; // Set Z and N
+    FlagW = 2'b00; // don't update Flags
+    // FlagW = {Funct[0], 1'b0}; // Set Z and N
   end
   3'b110: begin
     ALUControl = 5'b01101; // Multiply high
-    FlagW = {Funct[0], 1'b0}; // Set Z and N
+    FlagW = 2'b00; // don't update Flags
+    // FlagW = {Funct[0], 1'b0}; // Set Z and N
   end
   default: begin
     ALUControl = 5'bx;

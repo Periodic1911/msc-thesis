@@ -88,6 +88,7 @@ always_comb
     // Mux ARM RegSrc
     ra1 = {1'b0, (RegSrcD == 4'b0001) ? 4'd15 : // Branch
       (RegSrcD[1:0] == 2'b11) ? instr[11:8] : // Shift
+      (RegSrcD[1:0] == 2'b01) ? instr[15:12] : // MLA
       instr[19:16]};
 
     ra2 = {1'b0, RegSrcD[2] ? ldmReg :   // LDM

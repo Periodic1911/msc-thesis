@@ -37,7 +37,7 @@ mux2 #(32)armmux(Op2E,shiftResult,armE,Op2Shifted);
 logic rv_ge = (addResult[31] == overflow);
 
 logic [63:0] mulResult;
-multiplier mul(2'b00, Op1E, Op2E, mulResult);
+multiplier mul({ALUControlE[4],ALUControlE[1]}, Op1E, Op2E, mulResult);
 
 always_comb
   case(ALUControlE)
@@ -49,12 +49,14 @@ always_comb
     5'b00110: ALUResultE = Op2Shifted; // forward immediate
     5'b01100: ALUResultE = mulResult[31:0]; // multiply low
     5'b01101: ALUResultE = mulResult[63:32]; // multiply high
+    5'b01111: ALUResultE = mulResult[63:32]; // multiply high sign*sign
     // RISC-V only
     5'b00101: ALUResultE = {31'b0, ~rv_ge}; // slt
     5'b00111: ALUResultE = {31'b0, carry}; // sltu
     5'b01000: ALUResultE = shiftResult; // sll
     5'b01001: ALUResultE = shiftResult; // srl
     5'b01010: ALUResultE = shiftResult; // sra
+    5'b11101: ALUResultE = mulResult[63:32]; // multiply high sign*unsign
     // ARM only
     5'b10111: ALUResultE = ~Op2Shifted; // mvn
     5'b11111: ALUResultE = Op1E;      // forward Op1

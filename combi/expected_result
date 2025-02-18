@@ -1,3 +1,22 @@
+arm_tests/DDCA	OK
+arm_tests/adc	OK
+arm_tests/b	OK
+arm_tests/bic	OK
+arm_tests/cmn	OK
+arm_tests/cmp	OK
+arm_tests/ldm	OK
+arm_tests/ldrh	OK
+arm_tests/ldstr	OK
+arm_tests/mul	OK
+arm_tests/mvn	OK
+arm_tests/rsb	OK
+arm_tests/rsc	OK
+arm_tests/sbc	OK
+arm_tests/shift	OK
+arm_tests/simpl	OK
+arm_tests/stm	OK
+arm_tests/teq	OK
+arm_tests/tst	OK
 rv_tests/DDCA	OK
 rv_tests/add	OK
 rv_tests/addi	OK
@@ -45,4 +64,3 @@ rv_tests/sw	OK
 rv_tests/temp	OK
 rv_tests/xor	OK
 rv_tests/xori	OK
-program_arm	OK

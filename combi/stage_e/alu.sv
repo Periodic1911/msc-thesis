@@ -1,6 +1,10 @@
 module alu(
-  input logic [3:0] ALUControlE,
+  input logic armE,
+  input logic [4:0] ALUControlE,
   input logic [31:0] Op1E, Op2E,
+  input logic [2:0] ShiftTypeE,
+  input logic [4:0] ShiftAmtE,
+  input logic [3:0] FlagsE, // ARM only
 
   output logic [31:0] ALUResultE,
   output logic [3:0] ALUFlags
@@ -8,31 +12,59 @@ module alu(
 
 logic [31:0] addResult;
 
-add_sub as(.a(Op1E), .b(Op2E), .q(addResult), .add(~ALUControlE[0]), .cOut(carry),
-  .overflow(overflow)
+add_sub as(.a(Op1E), .b(Op2Shifted), .q(addResult),
+  .add(~{(ALUControlE[4]&ALUControlE[2]), ALUControlE[0]}),
+  .cIn(FlagsE[1]), .useCarry(ALUControlE[4] & ALUControlE[1]),
+  .cOut(carry), .overflow(overflow)
   );
 
-logic [31:0] shiftResult;
-logic [1:0] shiftOp = ALUControlE[1:0];
+logic [31:0] shiftInput, shiftResult;
+logic [4:0] shiftAmount;
+logic [1:0] shiftOp;
 
-barrel_shift bs(Op1E, Op2E[4:0], shiftOp, shiftResult);
+mux2 #(2)shopmux(ALUControlE[1:0],ShiftTypeE[1:0],armE,shiftOp);
+
+mux2 #(32)shinmux(Op1E,Op2E,armE,shiftInput);
+mux4 #(5)shamtmux1(Op2E[4:0],Op2E[4:0],Op1E[4:0],ShiftAmtE,
+                   {armE,ShiftTypeE[2]},
+                   shiftAmount);
+
+barrel_shift bs(shiftInput, shiftAmount, shiftOp, shiftResult);
+
+logic [31:0] Op2Shifted;
+mux2 #(32)armmux(Op2E,shiftResult,armE,Op2Shifted);
 
 logic rv_ge = (addResult[31] == overflow);
 
+logic [63:0] mulResult;
+multiplier mul({ALUControlE[4],ALUControlE[1]}, Op1E, Op2E, mulResult);
+
 always_comb
   case(ALUControlE)
-    4'b0000: ALUResultE = addResult; // add
-    4'b0001: ALUResultE = addResult; // sub
-    4'b0010: ALUResultE = Op1E & Op2E; // and
-    4'b0011: ALUResultE = Op1E | Op2E; // or
-    4'b0100: ALUResultE = Op1E ^ Op2E; // xor
+    5'b00000: ALUResultE = addResult; // add
+    5'b00001: ALUResultE = addResult; // sub
+    5'b00010: ALUResultE = Op1E & Op2Shifted; // and
+    5'b00011: ALUResultE = Op1E | Op2Shifted; // or
+    5'b00100: ALUResultE = Op1E ^ Op2Shifted; // xor
+    5'b00110: ALUResultE = Op2Shifted; // forward immediate
+    5'b01100: ALUResultE = mulResult[31:0]; // multiply low
+    5'b01101: ALUResultE = mulResult[63:32]; // multiply high
+    5'b01111: ALUResultE = mulResult[63:32]; // multiply high sign*sign
     // RISC-V only
-    4'b0101: ALUResultE = {31'b0, ~rv_ge}; // slt
-    4'b0111: ALUResultE = {31'b0, carry}; // sltu
-    4'b0110: ALUResultE = Op2E; // forward immediate
-    4'b1000: ALUResultE = shiftResult; // sll
-    4'b1001: ALUResultE = shiftResult; // srl
-    4'b1010: ALUResultE = shiftResult; // sra
+    5'b00101: ALUResultE = {31'b0, ~rv_ge}; // slt
+    5'b00111: ALUResultE = {31'b0, carry}; // sltu
+    5'b01000: ALUResultE = shiftResult; // sll
+    5'b01001: ALUResultE = shiftResult; // srl
+    5'b01010: ALUResultE = shiftResult; // sra
+    5'b11101: ALUResultE = mulResult[63:32]; // multiply high sign*unsign
+    // ARM only
+    5'b10111: ALUResultE = ~Op2Shifted; // mvn
+    5'b11111: ALUResultE = Op1E;      // forward Op1
+    5'b10000: ALUResultE = Op1E & ~Op2Shifted; // bic
+    5'b10100: ALUResultE = addResult; // rsb
+    5'b10010: ALUResultE = addResult; // adc
+    5'b10011: ALUResultE = addResult; // sbc
+    5'b10110: ALUResultE = addResult; // rsc
     default: ALUResultE = 32'hxxxxxxxx; /// ???
   endcase
 
@@ -49,18 +81,21 @@ endmodule
 /* Combined adder-subtractor with one carry chain */
 module add_sub(
   input logic [31:0] a, b,
-  input logic add,
+  input logic [1:0] add,
+  input logic useCarry, cIn,
   output logic [31:0] q,
   output logic cOut,
   output logic overflow // ARM only
 );
 
-logic [31:0] b_inv;
-assign b_inv = add ? b : ~b;
-logic carry_in = ~add;
+logic [31:0] b_inv, a_inv;
+assign b_inv = add[0] ? b : ~b;
+assign a_inv = add[1] ? a : ~a;
+logic carry_in;
+mux2 #(1)carrymux(~(&add), cIn ^ ~(&add), useCarry, carry_in);
 logic carry_out;
 
-assign {carry_out, q} = a + b_inv + {31'b0, carry_in};
+assign {carry_out, q} = a_inv + b_inv + {31'b0, carry_in};
 xor(cOut, carry_out, carry_in);
 assign overflow = (~q[31] & a[31] & b_inv[31]) |
                   ( q[31] &~a[31] &~b_inv[31]);
@@ -110,6 +145,31 @@ always_comb
     2'b01: q = arshift_stage[0];
     2'b10: q = arshift_stage[0];
     2'b11: q = ror_stage[0];
+  endcase
+
+endmodule
+
+/* multiplier with signed option
+* single cycle, optimized for FPGA
+* sign:
+* 00 -> unsigned
+* 01 -> signed x signed
+* 10 -> signed x unsigned
+*/
+module multiplier(
+  input logic [1:0] sign,
+  input logic [31:0] a, b,
+  output logic [63:0] q);
+
+logic signed [63:0] q_signed = $signed(a) * $signed(b);
+logic signed [63:0] q_signed2 = $signed(a) * b;
+
+always_comb
+  case(sign)
+    2'b00: q = a*b;
+    2'b01: q = q_signed;
+    2'b10: q = q_signed2;
+    2'b11: q = 64'bx;
   endcase
 
 endmodule

@@ -19,14 +19,19 @@ module stage_d(
   output logic [1:0] BranchD,
   output logic [1:0] MemSizeD,
   output logic MemSignedD,
-  output logic [3:0] ALUControlD,
+  output logic [4:0] ALUControlD,
+  output logic [4:0] ShiftAmtD, // ARM only
+  output logic [2:0] ShiftTypeD, // ARM only
   output logic PCSrcD, // ARM only
   output logic [1:0] FlagWriteD, // ARM only
   output logic [3:0] CondD, // ARM only
+  output logic [1:0] FwdD,
+  output logic [1:0] uCnt, // ARM only
+  output logic StallFD, // ARM only
   output logic [1:0] ResultSrcD, // bit 1 RISC-V only
   output logic armD, // combi only
 
-  input logic StallD, FlushD
+  input logic StallD, FlushD, FlushE
   );
 
 `ifdef RISCV `ifdef ARM
@@ -54,21 +59,41 @@ logic wasNotFlushed = 1;
 assign armD = 0;
 `endif `endif
 
+logic [3:0] ldmReg;
+logic ldmStall;
+ldm ldmshifter(clk, instr[15:0], ldmReg, ldmStall, RegSrcD[2], FlushE);
 
 logic [31:0] PCPlus8D = PCPlus4F;
 logic [2:0] ImmSrcD;
-logic [1:0] RegSrcD; // ARM only
+logic [3:0] RegSrcD; // ARM only
 
 combi_decoder dec(.*);
 
-assign RdD = (armD) ? {1'b0, instr[15:12]} : instr[11:7];
+always_comb
+  if(armD)
+    if(RegSrcD[2])
+      RdD = {1'b0, ldmReg}; // LDM
+    else if (RegSrcD[3])
+      RdD = {1'b0, instr[19:16]}; // LDR/STR WB and MUL
+    else if (RegSrcD == 4'b0001)
+      RdD = 5'd14; // BL
+    else
+      RdD = {1'b0, instr[15:12]}; // Data Processing
+  else
+    RdD = instr[11:7];
 
 logic [4:0] ra1, ra2;
 always_comb
   if(armD) begin
     // Mux ARM RegSrc
-    ra1 = RegSrcD[0] ? 5'd15 : {1'b0, instr[19:16]};
-    ra2 = {1'b0, RegSrcD[1] ? RdD[3:0] : instr[3:0]};
+    ra1 = {1'b0, (RegSrcD == 4'b0001) ? 4'd15 : // Branch
+      (RegSrcD[1:0] == 2'b11) ? instr[11:8] : // Shift
+      (RegSrcD[1:0] == 2'b01) ? instr[15:12] : // MLA
+      instr[19:16]};
+
+    ra2 = {1'b0, RegSrcD[2] ? ldmReg :   // LDM
+      (RegSrcD == 4'b0010) ? RdD[3:0] :  // STR/LDR
+      instr[3:0]};
   end else begin
     // RISC-V assignment
     ra1 = instr[19:15];

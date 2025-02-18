@@ -37,7 +37,7 @@ mux2 #(32)armmux(Op2E,shiftResult,armE,Op2Shifted);
 logic rv_ge = (addResult[31] == overflow);
 
 logic [63:0] mulResult;
-multiplier mul(1'b0, Op1E, Op2E, mulResult);
+multiplier mul(2'b00, Op1E, Op2E, mulResult);
 
 always_comb
   case(ALUControlE)
@@ -147,10 +147,27 @@ always_comb
 
 endmodule
 
-module multiplier(input logic sign,
-                  input logic [31:0] a, b,
-                  output logic [63:0] q);
+/* multiplier with signed option
+* single cycle, optimized for FPGA
+* sign:
+* 00 -> unsigned
+* 01 -> signed x signed
+* 10 -> signed x unsigned
+*/
+module multiplier(
+  input logic [1:0] sign,
+  input logic [31:0] a, b,
+  output logic [63:0] q);
+
 logic signed [63:0] q_signed = $signed(a) * $signed(b);
-assign q = sign ? q_signed : (a * b);
+logic signed [63:0] q_signed2 = $signed(a) * b;
+
+always_comb
+  case(sign)
+    2'b00: q = a*b;
+    2'b01: q = q_signed;
+    2'b10: q = q_signed2;
+    2'b11: q = 64'bx;
+  endcase
 
 endmodule

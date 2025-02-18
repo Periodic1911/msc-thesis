@@ -19,6 +19,16 @@ ARMTEST_CODE_BEGIN
   umlal r3,r4, r1,r2
   TEST_CASE( 5, r4, 0x1ff00001, );
   TEST_CASE( 6, r3, 0x35000000, );
+  ldr r1, =-3
+  ldr r2, =7
+  smull r3,r4, r1,r2
+  TEST_CASE( 7, r4, -1, );
+  TEST_CASE( 8, r3, -21, );
+  ldr r1, =-3
+  ldr r2, =-14
+  smlal r3,r4, r1,r2
+  TEST_CASE( 9, r4, 0, );
+  TEST_CASE(10, r3, 21, );
 
   TEST_PASSFAIL;
 

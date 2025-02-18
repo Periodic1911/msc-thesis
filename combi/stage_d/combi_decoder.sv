@@ -581,7 +581,10 @@ always_comb begin
     // FlagW = {Funct[0], 1'b0}; // Set Z and N
   end
   3'b110: begin
-    ALUControl = 5'b01101; // Multiply high
+    if (instr[22])
+      ALUControl = 5'b01111; // Multiply high signed
+    else
+      ALUControl = 5'b01101; // Multiply high unsigned
     FlagW = 2'b00; // don't update Flags
     // FlagW = {Funct[0], 1'b0}; // Set Z and N
   end

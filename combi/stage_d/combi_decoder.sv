@@ -343,8 +343,8 @@ always_comb begin
            if(uCnt == 2'b00)      controls = 23'b1011_000_0_00_0_0_0_101_00_1_01_00;
            else                   controls = 23'b1001_000_0_00_1_0_0_000_00_0_00_10;
   else if(instr[27:23] == 5'b00001 && instr[21] == 1'b0 && instr[7:4] == 4'b1001) // MULL
-           if(uCnt == 2'b00)      controls = 23'b0000_000_0_01_1_0_0_010_00_1_01_00;
-           else                   controls = 23'bx;
+           if(uCnt == 2'b00)      controls = 23'b0011_000_0_00_1_0_0_101_00_1_01_00;
+           else                   controls = 23'b1011_000_0_00_1_0_0_110_00_0_00_00;
   else if(instr[27:23] == 5'b00001 && instr[21] == 1'b0 && instr[7:4] == 4'b1001) // MLAL
            if(uCnt == 2'b00)      controls = 23'b0000_000_0_01_1_0_0_010_00_1_01_00;
            else                   controls = 23'bx;

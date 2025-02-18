@@ -36,7 +36,7 @@ logic armD;
 `endif
 
 /* RISC-V */
-logic opb5, funct7b5;
+logic opb5, funct7b5, funct7b0;
 logic [2:0] funct3;
 logic [1:0] ALUOp;
 logic [3:0] RV_ALUControl;
@@ -51,9 +51,10 @@ logic [2:0] RV_ImmSrc;
 logic RV_mainValid, RV_ALUValid, RV_valid; //combi only
 logic [3:0] RV_Cond;
 
-assign {opb5, funct7b5, funct3, RV_op} = {
+assign {opb5, funct7b5, funct7b0, funct3, RV_op} = {
   instr[5],
   instr[30],
+  instr[25],
   instr[14:12],
   instr[6:0] };
 
@@ -154,7 +155,7 @@ endmodule
 
 module rv_aludec(input logic opb5,
                  input logic [2:0] funct3,
-                 input logic funct7b5,
+                 input logic funct7b5, funct7b0,
                  input logic [1:0] ALUOp,
                  output logic [3:0] RV_Cond,
                  output logic RV_ALUValid, // combi only
@@ -169,26 +170,37 @@ always_comb begin
     2'b00: ALUControl = 4'b0000; // addition
     2'b01: ALUControl = 4'b0001; // subtraction
     2'b11: ALUControl = 4'b0110; // lui
-    2'b10: case(funct3) // R–type or I–type ALU
-      3'b000: if (RtypeSub)
-                ALUControl = 4'b0001; // sub
-              else
-                ALUControl = 4'b0000; // add, addi
-      3'b001:   ALUControl = 4'b1000; // sll, slli
-      3'b101: if (funct7b5)
-                ALUControl = 4'b1010; // sra, srai
-              else
-                ALUControl = 4'b1001; // srl, srli
-      3'b010:   ALUControl = 4'b0101; // slt, slti
-      3'b011:   ALUControl = 4'b0101; // sltu, sltiu
-      3'b100:   ALUControl = 4'b0100; // xor, xori
-      3'b110:   ALUControl = 4'b0011; // or, ori
-      3'b111:   ALUControl = 4'b0010; // and, andi
-      default: begin
-        ALUControl = 4'bxxxx; // ???
-        RV_ALUValid = 0; // combi only
-      end
-    endcase
+    2'b10:
+      if(funct7b0 & opb5) // R-type mul
+        case(funct3) // R–type or I–type ALU
+        3'b000: ALUControl = 4'b1100; // mul
+        3'b001: ALUControl = 4'b1111; // mulh
+        3'b010: ALUControl = 4'b1110; // mulhsu
+        3'b011: ALUControl = 4'b1101; // mulhu
+        default: begin
+          ALUControl = 4'bxxxx; // ???
+        end
+        endcase
+      else case(funct3) // R–type or I–type ALU
+        3'b000: if (RtypeSub)
+                  ALUControl = 4'b0001; // sub
+                else
+                  ALUControl = 4'b0000; // add, addi
+        3'b001:   ALUControl = 4'b1000; // sll, slli
+        3'b101: if (funct7b5)
+                  ALUControl = 4'b1010; // sra, srai
+                else
+                  ALUControl = 4'b1001; // srl, srli
+        3'b010:   ALUControl = 4'b0101; // slt, slti
+        3'b011:   ALUControl = 4'b0101; // sltu, sltiu
+        3'b100:   ALUControl = 4'b0100; // xor, xori
+        3'b110:   ALUControl = 4'b0011; // or, ori
+        3'b111:   ALUControl = 4'b0010; // and, andi
+        default: begin
+          ALUControl = 4'bxxxx; // ???
+          RV_ALUValid = 0; // combi only
+        end
+      endcase
   endcase
 end
 

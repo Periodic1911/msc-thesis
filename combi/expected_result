@@ -40,10 +40,10 @@ rv_tests/lh	OK
 rv_tests/lhu	OK
 rv_tests/lui	OK
 rv_tests/lw	OK
-rv_tests/mul	ERROR
-rv_tests/mulh	ERROR
-rv_tests/mulhsu	ERROR
-rv_tests/mulhu	ERROR
+rv_tests/mul	OK
+rv_tests/mulh	OK
+rv_tests/mulhsu	OK
+rv_tests/mulhu	OK
 rv_tests/or	OK
 rv_tests/ori	OK
 rv_tests/rem	ERROR

@@ -37,7 +37,16 @@ mux2 #(32)armmux(Op2E,shiftResult,armE,Op2Shifted);
 logic rv_ge = (addResult[31] == overflow);
 
 logic [63:0] mulResult;
-multiplier mul({ALUControlE[4],ALUControlE[1]}, Op1E, Op2E, mulResult);
+logic [1:0] mulSign;
+always_comb
+  case(ALUControlE)
+    5'b01100: mulSign = 2'bxx; // multiply low
+    5'b01101: mulSign = 2'b00; // multiply high
+    5'b01111: mulSign = 2'b01; // multiply high sign*sign
+    5'b01110: mulSign = 2'b10; // multiply high sign*unsign
+    default:  mulSign = 2'bxx;
+  endcase
+multiplier mul(mulSign, Op1E, Op2E, mulResult);
 
 always_comb
   case(ALUControlE)
@@ -56,7 +65,7 @@ always_comb
     5'b01000: ALUResultE = shiftResult; // sll
     5'b01001: ALUResultE = shiftResult; // srl
     5'b01010: ALUResultE = shiftResult; // sra
-    5'b11101: ALUResultE = mulResult[63:32]; // multiply high sign*unsign
+    5'b01110: ALUResultE = mulResult[63:32]; // multiply high sign*unsign
     // ARM only
     5'b10111: ALUResultE = ~Op2Shifted; // mvn
     5'b11111: ALUResultE = Op1E;      // forward Op1
@@ -162,7 +171,7 @@ module multiplier(
   output logic [63:0] q);
 
 logic signed [63:0] q_signed = $signed(a) * $signed(b);
-logic signed [63:0] q_signed2 = $signed(a) * b;
+logic signed [63:0] q_signed2 = $signed(a) * $signed({1'b0, b});
 
 always_comb
   case(sign)

@@ -347,9 +347,9 @@ always_comb begin
            else                   controls = 23'b1011_000_0_00_1_0_0_110_00_0_00_00;
   else if(instr[27:23] == 5'b00001 && instr[21] == 1'b1 && instr[7:4] == 4'b1001) // MLAL
            if(uCnt == 2'b00)      controls = 23'b1011_000_0_00_0_0_0_101_00_1_01_00;
-           else if(uCnt == 2'b01) controls = 23'b0010_000_0_00_1_0_0_000_00_1_10_01; //TODO carry
+           else if(uCnt == 2'b01) controls = 23'b0010_000_0_00_1_0_0_111_00_1_10_01; //TODO carry
            else if(uCnt == 2'b10) controls = 23'b1011_000_0_00_0_0_0_110_00_1_11_00;
-           else                   controls = 23'b1000_000_0_00_1_0_0_000_00_0_00_10;
+           else                   controls = 23'b1000_000_0_00_1_0_0_111_00_0_00_10;
   else if(instr[27:25] == 3'b000 && instr[7:4] == 4'b1001 )
            // SWP
            if(uCnt == 2'b00)      controls = 23'b0000_000_0_01_1_0_0_010_00_1_01_00;
@@ -584,6 +584,17 @@ always_comb begin
     ALUControl = 5'b01101; // Multiply high
     FlagW = 2'b00; // don't update Flags
     // FlagW = {Funct[0], 1'b0}; // Set Z and N
+  end
+  3'b111: begin
+    if(uCnt == 2'b01) begin
+      ALUControl = 5'b00000; // ADD
+      FlagW = 2'b01; // set C and V
+    end
+    else begin
+      ALUControl = 5'b10010; // ADC
+      FlagW = 2'b00; // don't update Flags
+      // FlagW = {Funct[0], 1'b0}; // Set Z and N
+    end
   end
   default: begin
     ALUControl = 5'bx;
